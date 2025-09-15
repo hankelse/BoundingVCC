@@ -1,14 +1,15 @@
-from load_data import load_lazy
-from pprint import pprint
-from process_data import get_graphs
+from data_io.load_data import load_lazy
+from data_io.process_data import get_graphs
+from algorithms.degeneracy import get_degeneracy
 from graph import Graph
+
+
+from pprint import pprint
 import time
-
 import itertools
-
-# Brute force approach
 import networkx as nx
 
+# Brute force approach
 def find_c5s_slow(G):
     """
     Brutish Search for c5s: Runs in O(n * highest_degree^4)
@@ -38,6 +39,8 @@ def find_c5s_slow(G):
 
 
 C5_LOCATING_SETS = [("test_datasets", "c5.txt"), ("test_datasets", "locate_c5_small.txt"), ("test_datasets", "locate_c5_small2.txt"), ("test_datasets", "katate.txt")]
+C5_LOCATING_SETS = [("test_datasets", "locate_c5_small2.txt")]
+
 
 def main():
     # Get data
@@ -56,6 +59,9 @@ def main():
 
         #End timer
         end = time.perf_counter()
+
+        degen_ordering, degeneracy = get_degeneracy(graph)
+        print(degen_ordering, degeneracy)
         
         print(f"Elapsed: {end - start:.6f} seconds")
 

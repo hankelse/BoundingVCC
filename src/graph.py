@@ -1,7 +1,5 @@
 import networkx as nx
 import matplotlib.pyplot as plt
-# from process_data import remap_nodes
-
 # My Graph Class that creates and wraps around a nxGraph
 class Graph:
     def __init__(self, edge_list):
@@ -65,6 +63,34 @@ class Graph:
         print(f"\tAverage degree: {avg_degree:.2f}")
         print(f"\tMax degree: {max_degree}")
 
+    # === Editing the Graph ===
+    def add_node(self, u):
+        """Add a node to the graph."""
+        self._graph.add_node(u)
+
+    def add_edge(self, u, v):
+        """Add an edge to the graph (adds nodes if needed)."""
+        self._graph.add_edge(u, v)
+
+    def remove_node(self, u):
+        """Remove a node and its incident edges."""
+        self._graph.remove_node(u)
+
+    def remove_edge(self, u, v):
+        """Remove an edge between two nodes (if it exists)."""
+        self._graph.remove_edge(u, v)
+
+    def copy(self):
+        """
+        Returns a deep copy of the graph.
+        Mutations on the copy do not affect the original.
+        """
+        new_graph = Graph([], name=self.name)
+        new_graph._graph = self._graph.copy(as_view=False)
+        new_graph.old_to_new_labels = dict(self.old_to_new_labels)
+        new_graph.new_to_old_labels = dict(self.new_to_old_labels)
+        return new_graph
+    
     # === Wrappers around common networkx methods ===
     def nodes(self):
         """Return node list."""
@@ -77,6 +103,13 @@ class Graph:
     def neighbors(self, node):
         """Return neighbors of a node."""
         return list(self._graph.neighbors(node))
+    
+    def degree(self, node):
+        """Return degree of a node."""
+        if node not in self._graph:
+            raise ValueError(f"Node {node} is not in the graph.")
+        return self._graph.degree[node]
+
 
     def has_edge(self, u, v):
         """Check if an edge exists between u and v."""
@@ -94,6 +127,8 @@ class Graph:
     def number_of_nodes(self):
         """Return the number of nodes."""
         return self._graph.number_of_nodes()
+    
+    # == Remapping node ids == 
 
     def original_label(self, node):
         """Get the original label for a remapped node."""
@@ -109,7 +144,6 @@ class Graph:
         """Draw the graph with matplotlib."""
         nx.draw(self._graph, with_labels=True, node_color="lightblue", edge_color="gray")
         plt.show()
-
 
     def nx_graph(self):
         # Ideally won't be used, (until I get lazy)

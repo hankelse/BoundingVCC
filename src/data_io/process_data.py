@@ -1,4 +1,4 @@
-from load_data import load_lazy
+from data_io.load_data import load_lazy
 import networkx as nx
 from graph import Graph
 
