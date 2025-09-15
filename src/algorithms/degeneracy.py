@@ -1,98 +1,63 @@
 from graph import Graph
+from bucket_queue import BucketQueue
+from collections import deque
 
 '''
-Given a graph, return a degeneracy ordering and number
+Given a graph, return a degeneracy ordering and number 
+from the 1983 paper: "Smallest-Last Ordering and Clustering and Graph Coloring Algorithms"
 '''
 
-def get_degeneracy(g : Graph):
-    '''
-    
-    Running time = O(ndlogd + n^2d)
-    '''
-    graph = g.copy() # O(n + m)
-    degen_ordering = []
-    degree_ordering = get_degree_ordering(graph) # O (nlogn)
-    highest_core_degree = 0
+def get_degeneracy(graph : Graph):
+    # Input: graph G (networkx.Graph)
+    # Output: degeneracy_ordering (list of nodes), degeneracy_number (int)
 
-    while len(graph.nodes()) > 0: # O(n)
-        # Empty list up affected neighbors
-        affected_neighbors = []
-
-        # Find the lowest degree node
-        lowest = degree_ordering[0]
-
-        # Update max_degree if node has highest
-        if graph.degree(lowest) > highest_core_degree:
-            highest_core_degree = graph.degree(lowest)
-
-        # Mark its neighbors
-        affected_neighbors = [n for n in graph.neighbors(lowest)] # O(d) --> O(nd)
-
-        # Add to degen ordering and remove from graph and ordering
-        degen_ordering.append(lowest)
-        graph.remove_node(lowest) # O(n) --> O(n^2)??
-        degree_ordering = degree_ordering[1:] #O(n) --> O(n^2)
-
-        # Resort its neighbors
-        if len(affected_neighbors) > 0:
-            degree_ordering = update_ordering(graph, ordered_nodes=degree_ordering, unsorted=affected_neighbors) # O(dlogd + nd) --> * n
-        
-    return degen_ordering, highest_core_degree
-
-
-def get_degree_ordering(graph : Graph):
-    """Orders nodes by degree low to high"""
-    ordered = sorted(graph.nodes(), key=lambda n: graph.degree(n))
-    return ordered
-
-def update_ordering(graph : Graph, ordered_nodes, unsorted):
     """
-    Given
-        ordered_nodes: the unaffected nodes from the previous ordering (size : n - number of iterations)
-        unsorted:  (unaffected neighbor, previous index)
-            the unaffected neighbors (size : O(degeneracy number))
-            previous index before sorting
-
-    Runs in O(dlogd + nd) time
+    Compute degeneracy ordering in O(n + m) using a bucket queue.
     """
-    # |unsorted| = O(d)
 
-    # Sort the unsorted --> O(dlogd)
-    unsorted = sorted(unsorted, key=lambda n: graph.degree(n)) 
+    # Initialize bucket queue: one bucket for each possible degree (0 ... max_deg)
+    b_queue = BucketQueue(graph.max_degree())
 
-    # Build a new ordering by going through ordered nodes until there is a place to insert unsorted one.
-    new_ordering = []
+    # Push each node into bucket[degree[v]]
+    for n in graph.nodes():
+        b_queue.push(key=graph.degree(n), item=n)
 
-    # Track the progress through the unsorted elements
-    curr_unsorted_index = 0
-
-    # Track the degree of the current element for speed
-    curr_unsorted_degree = graph.degree(unsorted[0])
-
-    # Iterate through ordered --> O(n)
-    for n in ordered_nodes: # Skip the 0th, because that was just removed from the graph
-        
-        # If there are more unsorted nodes to add
-        if curr_unsorted_index < len(unsorted):
-            n_degree = graph.degree(n)
-
-            # Add all of the unsorted nodes that can go here
-            while n_degree >= curr_unsorted_degree: # O(d) <-- not per iteration, in total
-                new_ordering.append(unsorted[curr_unsorted_index])
-
-                curr_unsorted_index += 1
-                if curr_unsorted_index < len(unsorted):
-                    curr_unsorted_degree = graph.degree(unsorted[curr_unsorted_index])
-                else:
-                    break
-        
-        # Add the next sorted node, if not one of the changed ones
-            # Since nodes lose degree we only have to check for repeats of ones we have already put in
-        if n not in unsorted[0:curr_unsorted_index]: # O(d)
-            new_ordering.append(n)
+    # Set up a degree map for as the degrees change:
+    curr_degree = [-1] * graph.number_of_nodes()
+    for node in graph.nodes(): curr_degree[node] = graph.degree(node)
     
-    return new_ordering
+    # Initialize result structures
+    degeneracy_ordering, degen_number = [], 0
 
+    # Initialize a lookup table to O(1) check if we have already added a node to the queue
+    already_added = [False for node in graph.nodes()]
+    
+    # While queue not empty
+    while not b_queue.is_empty():
+    #   1. Pop the next node from the lowest non-empty bucket (O(1) average) Since we don't delete nodes, we need to check if they are already added later.
+        node = b_queue.pop_min()
+        while node != None and already_added[node]: 
+            node = b_queue.pop_min()
+        if node == None: break
+
+        already_added[node] = True
+
+    #   2. Record node in ordering
+        degeneracy_ordering.append(node)
+
+    #   3. Update degen_number
+        degen_number = max(curr_degree[node], degen_number)
+        # print(f"Added node {node} which has {curr_degree[node]} later neighbors")
+
+    #   4. For each neighbor u of v that is still in the graph:
+        for neighbor in graph.neighbors(node):
+            if already_added[neighbor]: continue # Skip already added neighbors
+
+            # Adjust degrees
+            curr_degree[neighbor] -= 1
+            b_queue.push(key=curr_degree[neighbor], item=neighbor)
+    
+    return degeneracy_ordering, degen_number
 
 
 

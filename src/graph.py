@@ -34,9 +34,15 @@ class Graph:
         self.old_to_new_labels = mapping
         self.new_to_old_labels = {v: k for k, v in mapping.items()}
 
+        # Remove Self loops
+        new_edges = remove_self_loops(new_edges)
+
         # Create Graph
         self._graph = nx.Graph()
         self._graph.add_edges_from(new_edges)
+
+        # Explicitly add nodes (If a node is only in a self loop, then it would never be added to the graph)
+        self._graph.add_nodes_from(mapping.values())
 
     # === Get data on the Graph === #
     def report_sizes(self):
@@ -127,6 +133,10 @@ class Graph:
     def number_of_nodes(self):
         """Return the number of nodes."""
         return self._graph.number_of_nodes()
+
+    def max_degree(self):
+        """Return the max degree in the graph."""
+        return max(dict(self._graph.degree()).values())
     
     # == Remapping node ids == 
 
@@ -171,3 +181,8 @@ def remap_nodes(edge_list):
     new_edges = [(mapping[u], mapping[v]) for (u, v) in edge_list]
     
     return new_edges, mapping
+
+
+
+def remove_self_loops(edge_list):
+    return [(u, v) for (u, v) in edge_list if u != v]

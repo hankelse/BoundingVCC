@@ -1,6 +1,7 @@
 from data_io.load_data import load_lazy
 from data_io.process_data import get_graphs
 from algorithms.degeneracy import get_degeneracy
+from algorithms.slow_degeneracy import get_degeneracy_slow
 from graph import Graph
 
 
@@ -9,64 +10,46 @@ import time
 import itertools
 import networkx as nx
 
-# Brute force approach
-def find_c5s_slow(G):
-    """
-    Brutish Search for c5s: Runs in O(n * highest_degree^4)
-    """
-    c5s = set()
-    
-    for v1 in G.nodes():                               # O(n)      -> O(n)            
-        for v2 in G.neighbors(v1):                     # O(\delta) -> O(n\delta)
-            for v3 in G.neighbors(v2):                 # O(\delta) -> O(n\delta^2)
-                if v3 in (v1, v2): 
-                    continue
-                for v4 in G.neighbors(v3):             # O(\delta) -> O(n\delta^3)
-                    if v4 in (v1, v2, v3):
-                        continue
-                    for v5 in G.neighbors(v4):         # O(\delta) -> O(n\delta^4)
-                        if v5 in (v1, v2, v3, v4):
-                            continue
-                        # Check if it closes the cycle
-                        if G.has_edge(v5, v1):
-                            nodes = {v1, v2, v3, v4, v5}
-                            if len(nodes) == 5:  # all distinct
-                                sub = G.subgraph(nodes)
-                                if sub.number_of_edges() == 5:
-                                    c5s.add(tuple(nodes))
-    return list(c5s)
 
 
 
 C5_LOCATING_SETS = [("test_datasets", "c5.txt"), ("test_datasets", "locate_c5_small.txt"), ("test_datasets", "locate_c5_small2.txt"), ("test_datasets", "katate.txt")]
-C5_LOCATING_SETS = [("test_datasets", "locate_c5_small2.txt")]
+DEGEN_TEST_DATASETS = [ ("snap_datasets", "ca-GrQc.txt"), 
+                        ("snap_datasets","ca-HepTh.txt"),     
+                        ("snap_datasets", "p2p-Gnutella04.txt"),
+                        ("snap_datasets", "p2p-Gnutella05.txt"),
+                        ("snap_datasets", "p2p-Gnutella06.txt"),
+                        ("snap_datasets", "p2p-Gnutella08.txt"),
+                        ("snap_datasets", "p2p-Gnutella09.txt"),
+                        ("snap_datasets", "p2p-Gnutella24.txt"),
+                        ("snap_datasets", "p2p-Gnutella25.txt"),
+                        ("snap_datasets", "p2p-Gnutella30.txt"),
+                        ("snap_datasets", "p2p-Gnutella31.txt")]
+# C5_LOCATING_SETS = [("test_datasets", "locate_c5_small2.txt")]
+
+
+import time
+
 
 
 def main():
     # Get data
     datasets, test_datasets, small_datasets, large_datasets, graph_load_fn_map = get_graphs()
 
-    for dataset in C5_LOCATING_SETS:
+    # for dataset in C5_LOCATING_SETS:
+    for dataset in DEGEN_TEST_DATASETS:
         graph = graph_load_fn_map[dataset]()
 
         graph.report_sizes()
-
-        # Start timer
         start = time.perf_counter()
-
-        # Start the algorithm
-        print(find_c5s_slow(graph))
-
-        #End timer
         end = time.perf_counter()
-
-        degen_ordering, degeneracy = get_degeneracy(graph)
-        print(degen_ordering, degeneracy)
+        print(f"Elapsed: {end - start:.6f} seconds for slow degeneracy calculation")
         
-        print(f"Elapsed: {end - start:.6f} seconds")
 
         graph.show()
+    
 
+    
 main()
 
 
