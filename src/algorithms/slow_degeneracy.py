@@ -18,7 +18,7 @@ def get_degeneracy_slow(g : Graph):
     highest_core_degree = 0
 
     while len(graph.nodes()) > 0: # O(n)
-        # Empty list up affected neighbors
+        # Empty list of affected neighbors
         affected_neighbors = []
 
         # Find the lowest degree node

@@ -15,6 +15,7 @@ class BucketQueue:
     def push(self, key, item):
         self.buckets[key].append(item)
         self.size += 1
+        if key < self.curr_min: self.curr_min = key # Make sure that curr_min points to the first non-empty bucket
 
     def pop_min(self):
         while self.curr_min <= len(self.buckets) - 1 and not self.buckets[self.curr_min]:
@@ -26,3 +27,5 @@ class BucketQueue:
 
     def is_empty(self):
         return self.size == 0
+    
+

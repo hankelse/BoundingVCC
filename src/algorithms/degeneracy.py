@@ -34,7 +34,7 @@ def get_degeneracy(graph : Graph):
     
     # While queue not empty
     while not b_queue.is_empty():
-    #   1. Pop the next node from the lowest non-empty bucket (O(1) average) Since we don't delete nodes, we need to check if they are already added later.
+    #   1. Pop the next node from the lowest non-empty bucket (O(1) average)                        Since we don't delete nodes, we need to check if they are already added later.
         node = b_queue.pop_min()
         while node != None and already_added[node]: 
             node = b_queue.pop_min()
@@ -58,6 +58,45 @@ def get_degeneracy(graph : Graph):
             b_queue.push(key=curr_degree[neighbor], item=neighbor)
     
     return degeneracy_ordering, degen_number
+
+
+
+def compute_later_neighbors(graph: Graph, degeneracy_ordering):
+    """
+    Given a graph and its degeneracy ordering, 
+    Returns a map, later_neighbors where
+        key (node) : value (list of later neighbors)
+
+    Runs in O(n + m) time
+
+    Assumptions: 
+                Node_ids go from 0..|V|-1
+                No two nodes can have the same index in degen ordering
+    """
+
+    # 1) Create a node_id to degen_index lookup "map": degen_index 
+    # O(n)
+    degen_indices = [-1] * graph.number_of_nodes()
+    for degen_index, node in enumerate(degeneracy_ordering):
+        degen_indices[node] = degen_index
+
+    # 2) Create the later_neighbors map
+    # O(n)
+    later_neighbors = {node : [] for node in graph.nodes()} 
+
+    # 3) Fill the later_neighbors map
+    # O(m)
+    for u, v in graph.edges():
+        u_d_index = degen_indices[u]
+        v_d_index = degen_indices[v]
+
+        if u_d_index < v_d_index:
+            later_neighbors[u].append(v)
+        else:
+            later_neighbors[v].append(u)
+    
+    return later_neighbors
+
 
 
 
