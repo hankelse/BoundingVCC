@@ -79,12 +79,96 @@ def degeneracy_c5_search(graph: Graph):
     # Compute later neighbors in O(n + m)
     later_neighbors = compute_later_neighbors(graph, degeneracy_ordering)
 
-    # # # Whats up with : [0, 2, 18, 26, 32
-    # for node_id in [0, 2, 18, 26, 32]:
-    #     print(node_id, degeneracy_indices[node_id])
-    #     print(f"\t later_neighbors[{node_id}]=", later_neighbors[node_id])
-    # exit()
+    # Initialize resulting set
+    c5s = set()
 
+    # For each edge, look if u, v is a part of a c5 where u is the first from the c5 in the degeneracy ordering
+    for u, v in forward_edges:
+        if (u, v) == (18, 0): print("got the edge")
+
+        # Type ONE: u -> v -> x -> w -> y, u -> y
+        c5s = find_c5_type_one(u, v, forward_edges_set, later_neighbors, c5s)
+
+
+        # Type TWO: u -> v -> x -> w, u -> y -> w       (do I need to check if it could be w -> x?)
+        c5s = find_c5_type_two(u, v, forward_edges_set, later_neighbors, c5s)
+
+        # Type THREE: u -> v -> x, u -> y, w -> x, w -> y
+        # Type FOUR: u -> v, u -> y, x -> v, x -> w -> y
+        c5s = find_c5_type_three_and_four(u, v, forward_edges_set, later_neighbors, graph, c5s)
+        
+    return c5s
+
+def find_c5_type_one(u, v, forward_edges_set, later_neighbors, c5s):
+    for x in later_neighbors[v]: # O(md)
+            if (u, x) in forward_edges_set: continue # Don't allow u-x
+
+            for w in later_neighbors[x]: # O(md^2)
+                if (u, w) in forward_edges_set: continue # Don't allow u-w
+                if (v, w) in forward_edges_set: continue # Don't allow v-w
+
+                for y in later_neighbors[w]: #O(md^3)
+                    if (v, y) in forward_edges_set: continue
+                    if (x, y) in forward_edges_set: continue
+
+                    if (u, y) in forward_edges_set:
+                        c5s.add((u, v, x, w, y))
+    return c5s
+
+def find_c5_type_two(u, v, forward_edges_set, later_neighbors, c5s):
+    for x in later_neighbors[v]: # O(md)
+        if (u, x) in forward_edges_set: continue # Don't allow u-x
+
+        for w in later_neighbors[x]: # O(md^2)
+            if (u, w) in forward_edges_set: continue # Don't allow u-w
+            if (v, w) in forward_edges_set: continue # Don't allow v-w
+
+            for y in later_neighbors[u]: # O(md^3)
+                if (v, y) in forward_edges_set: continue
+                if (y, v) in forward_edges_set: continue
+                if (x, y) in forward_edges_set: continue
+                if (y, x) in forward_edges_set: continue
+
+                if (y, w) in forward_edges_set:
+                    c5s.add((u, v, x, w, y))
+    return c5s
+
+def find_c5_type_three_and_four(u, v, forward_edges_set, later_neighbors, graph, c5s):
+    for x in later_neighbors[v]: # O(md)
+        if (u, x) in forward_edges_set: continue # Don't allow u-x
+
+        for y in later_neighbors[u]: # O(md^2)
+            if (v, y) in forward_edges_set: continue
+            if (y, v) in forward_edges_set: continue
+            if (x, y) in forward_edges_set: continue
+            if (y, x) in forward_edges_set: continue
+
+            for w in graph.neighbors(x): #O(md^2n)
+                if (x, w) in forward_edges_set: continue
+                if graph.has_edge(u, w): continue
+                if graph.has_edge(w, v): continue
+
+                # if (w, x) in forward_edges_set:
+                if (w, y) in forward_edges_set:
+                    c5s.add((u, v, x, w, y))
+    return c5s
+
+'''
+def degeneracy_c5_search(graph: Graph):
+    # Get degeneracy ordering in O(n + m)
+    degeneracy_ordering, graph_degeneracy = get_degeneracy(graph)
+
+    # Get degeneracy index lookup in O(n)
+    degeneracy_indices = get_degeneracy_index_lookup(degeneracy_ordering)
+
+    # Get forward edge list in O(m)
+    forward_edges = get_forward_edges(graph, degeneracy_indices)
+
+    # Get forward edge lookup set
+    forward_edges_set = set(forward_edges)
+
+    # Compute later neighbors in O(n + m)
+    later_neighbors = compute_later_neighbors(graph, degeneracy_ordering)
 
     # Initialize resulting set
     c5s = set()
@@ -92,9 +176,10 @@ def degeneracy_c5_search(graph: Graph):
     # For each edge, look if u, v is a part of a c5 where u is the first from the c5 in the degeneracy ordering
     for u, v in forward_edges:
         if (u, v) == (18, 0): print("got the edge")
-        c5_found = False
 
         # Type ONE: u -> v -> x -> w -> y, u -> y
+
+
         for x in later_neighbors[v]: # O(md)
             if (u, x) in forward_edges_set: continue # Don't allow u-x
 
@@ -108,7 +193,6 @@ def degeneracy_c5_search(graph: Graph):
 
                     if (u, y) in forward_edges_set:
                         c5s.add((u, v, x, w, y))
-                        c5_found = True
         
         # if c5_found: continue
 
@@ -129,7 +213,6 @@ def degeneracy_c5_search(graph: Graph):
 
                     if (y, w) in forward_edges_set:
                         c5s.add((u, v, x, w, y))
-                        c5_found = True
         
         # if c5_found: continue
 
@@ -153,9 +236,6 @@ def degeneracy_c5_search(graph: Graph):
                     # if (w, x) in forward_edges_set:
                     if (w, y) in forward_edges_set:
                         c5s.add((u, v, x, w, y))
-                        c5_found = True
-        
-        # if c5_found: continue
 
 
         # # Type FOUR: u -> v, u -> y, x -> v, x -> w -> y
@@ -179,6 +259,7 @@ def degeneracy_c5_search(graph: Graph):
 
 
     return c5s
+'''
 
 
 '''

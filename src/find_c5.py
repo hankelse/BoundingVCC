@@ -31,7 +31,7 @@ def main():
     # Get data
     datasets, test_datasets, small_datasets, large_datasets, graph_load_fn_map = get_graphs()
 
-    c5s_run_and_write(datasets, degeneracy_c5_search, attempt_timeout=180)
+    c5s_run_and_write(DEGEN_TEST_DATASETS, degeneracy_c5_search, attempt_timeout=180)
 
 
 
