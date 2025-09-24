@@ -63,7 +63,10 @@ def get_degeneracy_index_lookup(degeneracy_ordering):
     return degen_indices
 
 
-def degeneracy_c5_search(graph: Graph):
+def degeneracy_c5_search(graph: Graph, remove_degree_one_vertices = True):
+    # If removing degree_one_vertices
+    if remove_degree_one_vertices: graph = remove_degree_1_vertices(graph)
+
     # Get degeneracy ordering in O(n + m)
     degeneracy_ordering, graph_degeneracy = get_degeneracy(graph)
 
@@ -143,7 +146,7 @@ def find_c5_type_three_and_four(u, v, forward_edges_set, later_neighbors, graph,
             if (x, y) in forward_edges_set: continue
             if (y, x) in forward_edges_set: continue
 
-            for w in graph.neighbors(x): #O(md^2n)
+            for w in graph.neighbors(x): #O(md^2 delta)
                 if (x, w) in forward_edges_set: continue
                 if graph.has_edge(u, w): continue
                 if graph.has_edge(w, v): continue
@@ -152,6 +155,70 @@ def find_c5_type_three_and_four(u, v, forward_edges_set, later_neighbors, graph,
                 if (w, y) in forward_edges_set:
                     c5s.add((u, v, x, w, y))
     return c5s
+
+def remove_degree_1_vertices_slow(graph_obj: Graph):
+    """
+    Repeatedly removes all degree-1 vertices from a NetworkX graph
+    until no such vertices remain (computes the 2-core).
+    Operates in-place and also returns the graph.
+    """
+    graph = graph_obj.nx_graph()
+
+    # Use a queue to avoid scanning all nodes repeatedly
+    deg1_nodes = [node for node, deg in graph.degree if deg == 1]
+    
+    while deg1_nodes:
+        graph.remove_nodes_from(deg1_nodes)
+        # Update candidates: neighbors might now have degree 1
+        deg1_nodes = [node for node, deg in graph.degree if deg == 1]
+    
+
+    edge_list = graph.edges()
+
+    return Graph(edge_list, name=graph_obj.name)
+
+
+from bucket_queue import BucketQueue
+
+def remove_degree_1_vertices(graph : Graph):
+    n = graph.number_of_nodes()
+    if n == 0:
+        return graph
+
+    # Initialize degree dictionary
+    degree = {u: graph.degree(u) for u in graph.nodes()}
+    max_deg = max(degree.values(), default=0)
+
+    # Initialize bucket queue with vertices by degree
+    bq = BucketQueue(max_deg)
+    for u, deg in degree.items():
+        bq.push(deg, u)
+
+    removed = [False] * graph.number_of_nodes()
+
+    while not bq.is_empty():
+        v = bq.pop_min()
+        if v is None or removed[v]:
+            continue
+
+        if degree[v] <= 1:
+            removed[v] = True
+            # Remove v from the graph
+            for u in list(graph.neighbors(v)):
+                if not removed[u]:
+                    # Decrease neighbor’s degree
+                    degree[u] -= 1
+                    bq.push(degree[u], u)
+
+    new_edge_list = []
+    for u, v in graph.edges():
+        if removed[u] or removed[v]: continue
+        new_edge_list.append((u, v))
+
+    return Graph(new_edge_list, graph.name)
+
+
+
 
 '''
 def degeneracy_c5_search(graph: Graph):

@@ -24,7 +24,9 @@ def get_degeneracy(graph : Graph):
 
     # Set up a degree map for as the degrees change:
     curr_degree = [-1] * graph.number_of_nodes()
-    for node in graph.nodes(): curr_degree[node] = graph.degree(node)
+    for node in graph.nodes(): 
+        # print(node, len(curr_degree))
+        curr_degree[node] = graph.degree(node)
     
     # Initialize result structures
     degeneracy_ordering, degen_number = [], 0

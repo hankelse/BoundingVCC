@@ -1,28 +1,5 @@
 import networkx as nx
 import matplotlib.pyplot as plt
-# My Graph Class that creates and wraps around a nxGraph
-class Graph:
-    def __init__(self, edge_list):
-        # Remap edges
-        new_edges, mapping = remap_nodes(edge_list)
-        # Store mappings
-        self.old_to_new_labels = mapping
-        self.new_to_old_labels = {v: k for k, v in mapping.items()}
-
-        # Create Graph
-        self._graph = nx.Graph()
-        self._graph.add_edges_from(new_edges)
-
-    def nodes(self):
-        """Return node list."""
-        return list(self._graph.nodes())
-
-    def edges(self):
-        """Return edge list."""
-        return list(self._graph.edges())
-    
-    import networkx as nx
-import matplotlib.pyplot as plt
 
 class Graph:
     def __init__(self, edge_list, name=None):
@@ -43,6 +20,9 @@ class Graph:
 
         # Explicitly add nodes (If a node is only in a self loop, then it would never be added to the graph)
         self._graph.add_nodes_from(mapping.values())
+
+        # Add manual edge lookup
+        self.edge_set = set(self._graph.edges())
 
     # === Get data on the Graph === #
     def report_sizes(self):
@@ -119,7 +99,8 @@ class Graph:
 
     def has_edge(self, u, v):
         """Check if an edge exists between u and v."""
-        return self._graph.has_edge(u, v)
+        # return self._graph.has_edge(u, v)
+        return (u, v) in self.edge_set or (v, u) in self.edge_set
 
     def subgraph(self, nodes):
         """Return a new Graph object induced by 'nodes'."""

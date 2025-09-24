@@ -15,49 +15,69 @@ import networkx as nx
 
 C5_LOCATING_SETS = [("test_datasets", "c5.txt"),("test_datasets", "c5_1.txt"), ("test_datasets", "locate_c5_small.txt"), ("test_datasets", "locate_c5_small2.txt"), ("test_datasets", "katate.txt")]
 DEGEN_TEST_DATASETS = [("snap_datasets", "ca-GrQc.txt"), ("snap_datasets","ca-HepTh.txt"), ("snap_datasets", "p2p-Gnutella04.txt"), ("snap_datasets", "p2p-Gnutella05.txt"), ("snap_datasets", "p2p-Gnutella06.txt"), ("snap_datasets", "p2p-Gnutella08.txt"), ("snap_datasets", "p2p-Gnutella09.txt"), ("snap_datasets", "p2p-Gnutella24.txt"), ("snap_datasets", "p2p-Gnutella25.txt"), ("snap_datasets", "p2p-Gnutella30.txt"), ("snap_datasets", "p2p-Gnutella31.txt")]
+SMALL_DATASETS = [('snap_datasets', 'ca-HepPh.txt'), ('snap_datasets', 'email-EuAll.txt'), ('snap_datasets', 'wiki-Vote.txt'), ('snap_datasets', 'ca-GrQc.txt'), ('snap_datasets', 'ca-AstroPh.txt'), ('snap_datasets', 'p2p-Gnutella04.txt'), ('snap_datasets', 'p2p-Gnutella05.txt'), ('snap_datasets', 'p2p-Gnutella06.txt'), ('snap_datasets', 'cit-HepTh.txt'), ('snap_datasets', 'p2p-Gnutella25.txt'), ('snap_datasets', 'p2p-Gnutella31.txt'), ('snap_datasets', 'p2p-Gnutella30.txt'), ('snap_datasets', 'p2p-Gnutella24.txt'), ('snap_datasets', 'email-Enron.txt'), ('snap_datasets', 'ca-HepTh.txt'), ('snap_datasets', 'soc-Slashdot0902.txt'), ('snap_datasets', 'p2p-Gnutella08.txt'), ('snap_datasets', 'p2p-Gnutella09.txt'), ('snap_datasets', 'cit-HepPh.txt'), ('snap_datasets', 'soc-Slashdot0811.txt'), ('snap_datasets', 'ca-CondMat.txt')]
+
 # # C5_LOCATING_SETS = [("test_datasets", "c5.txt")]
 # # C5_LOCATING_SETS = [("test_datasets", "locate_c5_small.txt")]
 # # C5_LOCATING_SETS = [("test_datasets", "locate_c5_small2.txt")]
 # # C5_LOCATING_SETS = [("test_datasets", "katate_smaller.txt")]
 # C5_LOCATING_SETS = [("test_datasets", "katate.txt")]
 
+# DEGEN_TEST_DATASETS = [("snap_datasets", "p2p-Gnutella31.txt")]
+DATASETS = []
+
 import time
 
 
-from algorithms.c5_search import degeneracy_c5_search, find_c5s_slow
+from algorithms.c5_search import degeneracy_c5_search, find_c5s_slow, remove_degree_1_vertices
 from data_io.to_csv import c5s_run_and_write
+
+import cProfile
+import pstats
+
 
 def main():
     # Get data
     datasets, test_datasets, small_datasets, large_datasets, graph_load_fn_map = get_graphs()
 
-    c5s_run_and_write(DEGEN_TEST_DATASETS, degeneracy_c5_search, attempt_timeout=180)
+    # c5s_run_and_write(small_datasets, degeneracy_c5_search, attempt_timeout=25)
+    c5s_run_and_write(small_datasets[3:], degeneracy_c5_search, attempt_timeout=25)
 
-
+    # cProfile.run("c5s_run_and_write(SMALL_DATASETS, degeneracy_c5_search, attempt_timeout=1200)", "profile_output.prof")
+    # p = pstats.Stats("profile_output.prof")
+    # p.sort_stats("time").print_stats(30) # Print top 10 functions by cumulative time
 
 
     # # for dataset in C5_LOCATING_SETS:
-    # for dataset in DEGEN_TEST_DATASETS:
+    # for dataset in small_datasets[6:]:
     #     graph = graph_load_fn_map[dataset]()
     #     print("\n")
     #     graph.report_sizes()
     #     print("")
 
     #     start = time.perf_counter()
-    #     check_c5s = find_c5s_slow(graph)
-    #     print(f"There SHOULD BE {len(check_c5s)} in {graph.name}")
+    #     reduced_graph = remove_degree_1_vertices(graph.copy())
+    #     num_nodes_removed = graph.number_of_nodes() - reduced_graph.number_of_nodes()
+
+    #     print(f"\t Removed {num_nodes_removed} degree 1 nodes")
+    #     c5s = degeneracy_c5_search(reduced_graph)
+
+
+    #     print(f"With removing {num_nodes_removed} degree 1 nodes we found {len(c5s)} in {graph.name}")
+    #     if (len(c5s) < 20): print(f"\tThey are {c5s}")
+    #     end = time.perf_counter()
+    #     print(f"\tElapsed: {end - start:.6f} seconds")
+
+    #     start = time.perf_counter()
+    #     check_c5s = degeneracy_c5_search(graph)
+    #     print(f"Without removing, found {len(check_c5s)} in {graph.name}")
     #     if (len(check_c5s) < 20): print(f"\t{check_c5s}")
     #     # print(f"\tThey are {c5s}")
     #     end = time.perf_counter()
     #     print(f"\tElapsed: {end - start:.6f} seconds")
 
         
-    #     start = time.perf_counter()
-    #     c5s = degeneracy_c5_search(graph)
-    #     print(f"We FOUND {len(c5s)} in {graph.name}")
-    #     if (len(c5s) < 20): print(f"\tThey are {c5s}")
-    #     end = time.perf_counter()
-    #     print(f"\tElapsed: {end - start:.6f} seconds")
+
 
 
 
