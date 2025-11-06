@@ -142,6 +142,45 @@ class Graph:
         return self._graph
     
 
+    def write(self, output_path, file_type="metis"):
+        """
+        Write the graph to disk in the specified format.
+        """
+        import os
+
+        file_type = file_type.lower()
+        if file_type not in {"metis", "snap"}:
+            raise ValueError(f"Unsupported file type '{file_type}'. Use 'metis' or 'snap'.")
+
+        dir_name = os.path.dirname(output_path)
+        if dir_name:
+            os.makedirs(dir_name, exist_ok=True)
+
+        n = self._graph.number_of_nodes()
+        m = self._graph.number_of_edges()
+        nodes_sorted = sorted(self._graph.nodes())
+
+        if file_type == "metis":
+            with open(output_path, "w") as f:
+                f.write(f"{n} {m}\n")
+                offset = 0 if min(nodes_sorted) == 1 else 1
+                for node in nodes_sorted:
+                    neighbors = sorted(self._graph.neighbors(node))
+                    neighbors = [str(v + offset) for v in neighbors]
+                    f.write(" ".join(neighbors) + "\n")
+
+        elif file_type == "snap":
+            with open(output_path, "w") as f:
+                f.write("# SNAP-format edge list\n")
+                for u, v in self._graph.edges():
+                    f.write(f"{u} {v}\n")
+
+        print(f"Wrote {file_type.upper()} file: {output_path}")
+
+
+
+    
+
 
 # Function for remapping node labels from an edge list:
 def remap_nodes(edge_list):

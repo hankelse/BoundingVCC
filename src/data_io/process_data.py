@@ -1,6 +1,6 @@
-from data_io.load_data import load_lazy
+from src.data_io.load_data import load_lazy
 import networkx as nx
-from graph import Graph
+from src.graph import Graph
 
 def get_graphs():
     '''
