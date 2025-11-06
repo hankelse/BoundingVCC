@@ -1,8 +1,8 @@
 
 
 # from graph import Graph
-from data_io.process_data import get_graphs
-from algorithms.degeneracy import get_degeneracy
+from src.data_io.process_data import get_graphs
+from src.algorithms.degeneracy import get_degeneracy
 import time
 import csv
 from concurrent.futures import ProcessPoolExecutor, TimeoutError

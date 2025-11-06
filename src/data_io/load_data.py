@@ -1,5 +1,5 @@
 import os
-from constants import DATA_DIR, SNAP_FOLDERS
+from src.constants import DATA_DIR, SNAP_FOLDERS
 
 # Helper for loading a file
 def load_snap_file(path):

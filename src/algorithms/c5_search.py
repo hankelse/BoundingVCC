@@ -1,5 +1,5 @@
-from algorithms.degeneracy import get_degeneracy, compute_later_neighbors
-from graph import Graph
+from src.algorithms.degeneracy import get_degeneracy, compute_later_neighbors
+from src.graph import Graph
 
 # Brute force approach
 def find_c5s_slow(G : Graph):
@@ -37,7 +37,7 @@ def find_c5s_slow(G : Graph):
                             c5s.add(tuple(sorted(nodes)))
     return list(c5s)
 
-from algorithms.degeneracy import get_degeneracy
+from src.algorithms.degeneracy import get_degeneracy
 from pprint import pprint
 from itertools import permutations
 from collections import defaultdict
@@ -178,7 +178,7 @@ def remove_degree_1_vertices_slow(graph_obj: Graph):
     return Graph(edge_list, name=graph_obj.name)
 
 
-from bucket_queue import BucketQueue
+from src.bucket_queue import BucketQueue
 
 def remove_degree_1_vertices(graph : Graph):
     n = graph.number_of_nodes()
