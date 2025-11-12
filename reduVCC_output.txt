@@ -1,0 +1,16 @@
+data/snap_datasets_metis/p2p-Gnutella04.metis, 10879, 79988, 0, 0.010958, 0
+cover build
+kernel solve
+unwind redutions
+data/snap_datasets_metis/p2p-Gnutella04.metis, 10879, 79988, 0, 0.0123391, 6531
+BEGIN_OUTPUT_FOR_TABLES
+run_type=ReduVCC
+input_graph_vertices=10879
+input_graph_edges=39994
+reduced_graph_vertices=0
+reduced_graph_edges=0
+total_time_to_best=0.000360012
+time_to_best_without_unwind=-2.86102e-06
+clique_cover_size=6531
+verified_cover=passed
+optimal=unknown

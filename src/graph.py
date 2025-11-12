@@ -7,6 +7,7 @@ class Graph:
 
         # Remap edges
         new_edges, mapping = remap_nodes(edge_list)
+        
         # Store mappings
         self.old_to_new_labels = mapping
         self.new_to_old_labels = {v: k for k, v in mapping.items()}
@@ -117,7 +118,9 @@ class Graph:
 
     def max_degree(self):
         """Return the max degree in the graph."""
-        return max(dict(self._graph.degree()).values())
+        degrees = dict(self._graph.degree())
+        return max(degrees.values()) if degrees else 0
+    
     
     # == Remapping node ids == 
 
