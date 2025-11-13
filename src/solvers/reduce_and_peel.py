@@ -1,6 +1,12 @@
 from src.solvers.frameworks.reduce_and_act import ReduceAndAct
 from src.algorithms.reductions import removed_masked_nodes
+from src.structures.graph import Graph
 
+
+
+def reduce_and_peel(graph: Graph, **kwargs):
+    """Convenience wrapper to run the Reduce-and-Peel algorithm."""
+    return ReduceAndPeel(**kwargs).run(graph)
 
 class ReduceAndPeel(ReduceAndAct):
     """

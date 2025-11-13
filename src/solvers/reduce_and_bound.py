@@ -9,20 +9,24 @@ from src.solvers.tools.external_solvers import find_indepedent_set_size
 
 from src.solvers.frameworks.reduce_and_act import ReduceAndAct
 
-def reduce_and_bound(graph: Graph, 
-                     reductions=apply_reductions_external,
-                     heuristic=smallest_neighborhood, 
-                     neighborhood_bound=trivial_neighborhood_bound, 
-                     auxiliary_bounder=find_indepedent_set_size,
-                     clique_cover=None, 
-                     offset = 0):
-    algo = ReduceAndBound(reductions=reductions,
-                          pat_finder= degeneracy_c5_search,
-                          pat_choice_heuristic=heuristic,
-                          pat_neighborhood_evaluator=neighborhood_bound,
-                          auxiliary_solver=auxiliary_bounder,
-                          clique_cover=clique_cover)
-    return algo.run(graph)
+# def reduce_and_bound(graph: Graph, 
+#                      reductions=apply_reductions_external,
+#                      heuristic=smallest_neighborhood, 
+#                      neighborhood_bound=trivial_neighborhood_bound, 
+#                      auxiliary_bounder=find_indepedent_set_size,
+#                      clique_cover=None, 
+#                      offset = 0):
+#     algo = ReduceAndBound(reductions=reductions,
+#                           pat_finder= degeneracy_c5_search,
+#                           pat_choice_heuristic=heuristic,
+#                           pat_neighborhood_evaluator=neighborhood_bound,
+#                           auxiliary_solver=auxiliary_bounder,
+#                           clique_cover=clique_cover)
+#     return algo.run(graph)
+
+def reduce_and_bound(graph: Graph, **kwargs):
+    """Convenience wrapper to run the Reduce-and-Bound algorithm."""
+    return ReduceAndBound(**kwargs).run(graph)
 
 class ReduceAndBound(ReduceAndAct):
     """
