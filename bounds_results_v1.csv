@@ -1,3 +1,8 @@
-reductions:apply_reductions_external	 heuristic:smallest_neighborhood	 neighborhood_bound:independence_neighborhood_bound	 auxiliary_bounder:find_indepedent_set_size
-dataset_category	dataset_name	num_nodes	num_edges	rab_algorithm	ib_algorithm	dataset_name	reduce_and_bound	independence_bound	difference	reduce_and_bound_time	independence_bound_time
-snap_datasets	email-Enron.txt	36692	183831	reduce_and_bound(reductions=apply_reductions_external, heuristic=smallest_neighborhood, neighborhood_bound=independence_neighborhood_bound, auxiliary_bounder=find_indepedent_set_size)	ib_default_v1	email-Enron.txt	22253	22253	0	0.209	0.188
+# base_algorithm: reduce_and_bound
+# reductions: apply_reductions_external
+# pattern_finder: degeneracy_c5_search
+# heuristic: smallest_neighborhood
+# neighborhood_evaluator: trivial_neighborhood_bound
+# auxiliary_solver: find_indepedent_set_size
+dataset_category	dataset_name	num_nodes	num_edges	rab_algorithm	ib_algorithm	reduce_and_bound	independence_bound	optimal_cover_size	difference	reduce_and_bound_time	independence_bound_time
+snap_datasets	email-Enron.txt	36692	183831	reduce_and_bound_v1	ib_default_v1	22253	22253	22256	0	0.208	0.189

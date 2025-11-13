@@ -1,18 +1,11 @@
 import csv
 import time
+from src.data_analysis.optimal_cover_sizes import optimal_cover_sizes
+from src.data_io.process_data import get_graphs
 from src.solvers.independence_bound import independence_bound
 from src.solvers.reduce_and_bound import reduce_and_bound
-from src.data_io.process_data import get_graphs
-import traceback
+import traceback, signal
 
-import signal
-
-import csv
-import time
-from functools import partial
-
-import csv
-import time
 
 def evaluate_bounds_on_datasets(
     datasets,
@@ -23,37 +16,28 @@ def evaluate_bounds_on_datasets(
 ):
     """
     Evaluate two lower-bound algorithms across multiple graph datasets
-    and save results to a tab-separated CSV.
-
-    Args:
-        datasets (list[tuple]): List of (category, name) pairs, e.g. [('snap_datasets', 'email-Enron.txt')]
-        rab_algorithm (callable): The reduce-and-bound algorithm to evaluate.
-        ib_algorithm (callable): The independence bound algorithm to evaluate.
-        output_path (str): CSV output file path.
-        timeout (int): Max seconds allowed per algorithm per dataset.
+    and save results to a tab-separated CSV, including known optimal
+    clique cover sizes when available.
     """
-    timed_out = [] # temporary
+    timed_out = []  # store datasets that timed out
 
     # --- Load graph dataset map ---
     _, _, _, _, graph_load_fn_map = get_graphs()
 
     # --- Prepare CSV output ---
-
-    title = algorithm_title(rab_algorithm)
-    print(f"title = {title}")
-   
-
+    description = algorithm_description(rab_algorithm)
+    print(f"description = {description}")
 
     header = [
         "dataset_category",
         "dataset_name",
         "num_nodes",
-        "num_edges",
+        "num_edges", 
         "rab_algorithm",
         "ib_algorithm",
-        "dataset_name",
         "reduce_and_bound",
         "independence_bound",
+        "optimal_cover_size",
         "difference",
         "reduce_and_bound_time",
         "independence_bound_time"
@@ -63,9 +47,12 @@ def evaluate_bounds_on_datasets(
         """Return a readable algorithm name (for partials, etc.)"""
         return getattr(fn, "__name__", repr(fn))
 
+    # --- Write CSV output ---
     with open(output_path, mode="w", newline="") as csvfile:
         writer = csv.writer(csvfile, delimiter="\t")
-        writer.writerow(title)
+
+        for desc in description:
+            writer.writerow([f"# {desc}"])
         writer.writerow(header)
 
         for dataset_category, dataset_name in datasets:
@@ -74,6 +61,10 @@ def evaluate_bounds_on_datasets(
             # --- Load and describe graph ---
             graph = graph_load_fn_map[(dataset_category, dataset_name)]()
             graph.report_sizes()
+
+            # --- Get dataset key and lookup optimal cover size ---
+            dataset_key = dataset_name.replace(".txt", "")
+            optimal_value = optimal_cover_sizes.get(dataset_key, -1) # default -1
 
             # --- Helper to time algorithms ---
             def time_algorithm(algorithm, *args, **kwargs):
@@ -84,10 +75,10 @@ def evaluate_bounds_on_datasets(
 
             # --- Run algorithms ---
             rab_result, rab_time = time_algorithm(
-                lambda g: rab_algorithm(g, offset=0), graph, timeout=timeout
+                lambda g: rab_algorithm(g), graph, timeout=timeout
             )
-            if rab_result == None: timed_out.append((f"{dataset_category}", f"{dataset_name}"))
-
+            if rab_result is None:
+                timed_out.append((dataset_category, dataset_name))
 
             ib_result, ib_time = time_algorithm(
                 ib_algorithm, graph, timeout=timeout
@@ -101,28 +92,28 @@ def evaluate_bounds_on_datasets(
 
             print(f"  → {algorithm_name(rab_algorithm)}: {rab_result} ({rab_time}s)")
             print(f"  → {algorithm_name(ib_algorithm)}: {ib_result} ({ib_time}s)")
+            print(f"  → Optimal: {optimal_value}")
             print(f"  → Difference: {difference}")
 
-            # --- Write results ---
+            # --- Write row ---
             writer.writerow([
                 dataset_category,
                 dataset_name,
                 graph.number_of_nodes(),
-                graph.number_of_edges(),
+                graph.number_of_edges(),                  
                 algorithm_name(rab_algorithm),
                 algorithm_name(ib_algorithm),
-                dataset_name,
                 rab_result,
                 ib_result,
+                optimal_value,
                 difference,
                 rab_time,
                 ib_time
             ])
 
-            
-
     print(f"\n✅ Finished evaluating all datasets. Results saved to: {output_path}")
     print(f"Timed out on {timed_out}")
+
 
 
 
@@ -164,19 +155,18 @@ def run_algorithm_with_timeout(algorithm, graph, timeout=45):
             pass
 
 
-def algorithm_title(algorithm):
+def algorithm_description(algorithm):
     """
     Returns a clean CSV-safe title derived from an algorithm's __name__.
     Removes the base algorithm and formats its parameters clearly.
     """
-    name = algorithm.__name__
-    if "(" in name and ")" in name:
-        inner = name[name.find("(")+1:name.rfind(")")]  # grab inside parentheses
-        inner = inner.replace(",", "8")                # use a clear delimiter
-        inner = inner.replace("=", ":")  
-        inner = inner.strip()               # optional readability
-        return inner.split("8")
-    return name
+    description = []
+    configurations = algorithm.config
+    for key, value in configurations.items():
+        description.append(f"{key}: {value}")
+    
+    return description
+
 
 
 import csv, os
