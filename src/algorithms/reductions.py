@@ -1,6 +1,6 @@
 
 
-from src.graph import Graph
+from src.structures.graph import Graph
 
 from collections import deque
 

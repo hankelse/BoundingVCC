@@ -1,6 +1,7 @@
 
 from src.data_io.process_data import get_graphs
-from src.algorithms.calculating_bounds import reduce_and_bound, independence_bound
+from src.solvers.reduce_and_bound import reduce_and_bound
+from src.solvers.independence_bound import independence_bound
 
 
 optimal_cover_sizes = {
@@ -53,7 +54,7 @@ apply_reductions.__name__           = "apply_reductions"
 apply_reductions_external.__name__  = "apply_reductions_external"
 
 # === HEURISTIC FUNCTIONS === #
-from src.algorithms.calculating_bounds import (
+from src.solvers.tools.subgraph_heuristics import (
     smallest_neighborhood,
     largest_neighborhood,
     random_neighborhood
@@ -63,7 +64,7 @@ largest_neighborhood.__name__   = "largest_neighborhood"
 random_neighborhood.__name__    = "random_neighborhood"
 
 # === NEIGHBORHOOD BOUNDERS === #
-from src.algorithms.calculating_bounds import (
+from src.solvers.tools.evaluate_subgraph import (
     clique_cover_neighborhood_bound,
     independence_neighborhood_bound,
     trivial_neighborhood_bound
@@ -73,7 +74,7 @@ independence_neighborhood_bound.__name__    = "independence_neighborhood_bound"
 trivial_neighborhood_bound.__name__         = "trivial_neighborhood_bound"
 
 # === AUXILIARY SOLVERS === #
-from src.algorithms.calculating_bounds import find_indepedent_set_size
+from src.solvers.tools.external_solvers import find_indepedent_set_size
 find_indepedent_set_size.__name__ = "find_indepedent_set_size"
 
 
@@ -134,7 +135,7 @@ rab_v3 = setup_algorithm(reductions=apply_reductions_external,
 
 
 
-from src.compare_bounds import evaluate_bounds_on_datasets, compare_to_optimal
+from src.data_analysis.compare_bounds import evaluate_bounds_on_datasets, compare_to_optimal
 
 def main():
     # Get data

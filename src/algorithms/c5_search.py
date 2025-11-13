@@ -1,5 +1,5 @@
 from src.algorithms.degeneracy import get_degeneracy, compute_later_neighbors
-from src.graph import Graph
+from src.structures.graph import Graph
 
 # Brute force approach
 def find_c5s_slow(G : Graph):
@@ -178,7 +178,7 @@ def remove_degree_1_vertices_slow(graph_obj: Graph):
     return Graph(edge_list, name=graph_obj.name)
 
 
-from src.bucket_queue import BucketQueue
+from src.structures.bucket_queue import BucketQueue
 
 def remove_degree_1_vertices(graph : Graph):
     n = graph.number_of_nodes()

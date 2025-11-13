@@ -1,7 +1,7 @@
 import csv
 import time
-from src.algorithms.calculating_bounds import reduce_and_bound, smallest_neighborhood, largest_neighborhood, clique_cover_neighborhood_bound
-from src.algorithms.calculating_bounds import independence_bound
+from src.solvers.independence_bound import independence_bound
+from src.solvers.reduce_and_bound import reduce_and_bound
 from src.data_io.process_data import get_graphs
 import traceback
 
