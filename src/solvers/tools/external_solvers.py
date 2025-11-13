@@ -26,6 +26,6 @@ def find_clique_cover_size(graph):
     if "details" in result and "clique_cover_size" in result["details"]:
         cover_size = result["details"]["clique_cover_size"]
 
-    # print(f"Clique Cover Size: {cover_size}")
+    print(f"Clique Cover Size: {cover_size}")
 
     return cover_size

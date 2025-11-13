@@ -1,0 +1,16 @@
+# base_algorithm: reduce_and_peel
+# reductions: apply_reductions_external
+# pattern_finder: degeneracy_c5_search
+# heuristic: largest_neighborhood
+# neighborhood_evaluator: clique_cover_neighborhood_bound
+# auxiliary_solver: find_clique_cover_size
+dataset_category	dataset_name	num_nodes	num_edges	calculation algorithm	reference algorithm	calculated_bound	reference_bound	optimal_cover_size	difference	calculated_bound_time	reference_bound_time
+new_snap_datasets	web-Stanford.txt	281903	1992636	reduce_and_peel_v1	ib_default_v1	161561	161514	-1	47	3.644	3.852
+new_snap_datasets	roadNet-CA.txt	1965206	2766607	reduce_and_peel_v1	ib_default_v1	997902	989541	-1	8361	30.93	23.352
+new_snap_datasets	amazon0312.txt	400727	2349869	reduce_and_peel_v1	ib_default_v1	137778	137721	-1	57	7.746	16.323
+new_snap_datasets	web-Google.txt	875713	4322051	reduce_and_peel_v1	ib_default_v1	528341	528341	529222	0	4.512	4.52
+new_snap_datasets	roadNet-TX.txt	1379917	1921660	reduce_and_peel_v1	ib_default_v1	699593	694396	-1	5197	18.978	19.486
+new_snap_datasets	amazon0302.txt	262111	899792	reduce_and_peel_v1	ib_default_v1	92985	92957	-1	28	2.358	2.045
+new_snap_datasets	web-NotreDame.txt	325729	1090108	reduce_and_peel_v1	ib_default_v1	262819	261488	-1	1331	4.168	2.457
+new_snap_datasets	roadNet-PA.txt	1088092	1541898	reduce_and_peel_v1	ib_default_v1	551556	547839	-1	3717	15.275	22.96
+snap_datasets	email-Enron.txt	36692	183831	reduce_and_peel_v1	ib_default_v1	22253	22253	22256	0	0.2	0.202

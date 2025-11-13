@@ -1,6 +1,7 @@
 
 from src.data_io.process_data import get_graphs
 from src.solvers.reduce_and_bound import reduce_and_bound
+from src.solvers.reduce_and_peel import reduce_and_peel
 from src.solvers.independence_bound import independence_bound
 
 
@@ -43,8 +44,9 @@ independence_neighborhood_bound.__name__    = "independence_neighborhood_bound"
 trivial_neighborhood_bound.__name__         = "trivial_neighborhood_bound"
 
 # === AUXILIARY SOLVERS === #
-from src.solvers.tools.external_solvers import find_indepedent_set_size
+from src.solvers.tools.external_solvers import find_indepedent_set_size, find_clique_cover_size
 find_indepedent_set_size.__name__ = "find_indepedent_set_size"
+find_clique_cover_size.__name__ = "find_clique_cover_size"
 
 
 def setup_algorithm(
@@ -108,6 +110,14 @@ rab_v1 = setup_algorithm(name="reduce_and_bound_v1",
                         neighborhood_evaluator=trivial_neighborhood_bound,
                         auxiliary_solver=find_indepedent_set_size)
 
+rap_v1 = setup_algorithm(name = "reduce_and_peel_v1",
+                         base_algorithm=reduce_and_peel,
+                         reductions=apply_reductions_external,
+                         pattern_finder=degeneracy_c5_search,
+                         heuristic=largest_neighborhood,
+                         neighborhood_evaluator=clique_cover_neighborhood_bound,
+                         auxiliary_solver=find_clique_cover_size)
+
 
 from src.data_analysis.compare_bounds import evaluate_bounds_on_datasets, compare_to_optimal
 
@@ -119,13 +129,19 @@ def main():
     datasets, test_datasets, small_datasets, large_datasets, graph_load_fn_map = get_graphs()
 
     testing_sets = [dataset for dataset in large_datasets if dataset not in too_slow_60] + [small_non_optimally_bounded]
-    testing_sets = [small_non_optimally_bounded]
+    # testing_sets = [small_non_optimally_bounded]
+    
+    # evaluate_bounds_on_datasets(datasets        = testing_sets,
+    #                             rab_algorithm   = rab_v1,
+    #                             ib_algorithm    = ib_default,
+    #                             timeout         = 60,
+    #                             output_path=f"{rab_v1.__name__}.csv")
     
     evaluate_bounds_on_datasets(datasets        = testing_sets,
-                                rab_algorithm   = rab_v1,
+                                rab_algorithm   = rap_v1,
                                 ib_algorithm    = ib_default,
                                 timeout         = 60,
-                                output_path="bounds_results_v1.csv")
+                                output_path=f"{rap_v1.__name__}.csv")
     
 
 
@@ -134,5 +150,53 @@ def main():
     
 if __name__ == "__main__":
     main()
+    # import networkx as nx
+    # import matplotlib.pyplot as plt
+
+    # # --- Raw METIS data as a string ---
+    # metis_data = """\
+    # 12 13
+    # 2 3
+    # 1 3
+    # 1 2
+    # 5 6 7
+    # 4 6 7
+    # 4 5 7
+    # 4 5 6
+    # 9 10
+    # 8 10
+    # 8 9
+    # 12
+    # 11
+    # """
+
+    # # --- Parse the METIS data ---
+    # lines = metis_data.strip().splitlines()
+    # num_nodes, num_edges = map(int, lines[0].split())
+
+    # G = nx.Graph()
+
+    # # Add nodes explicitly (optional, for clarity)
+    # G.add_nodes_from(range(1, num_nodes + 1))
+
+    # # Add edges based on adjacency list
+    # for i, line in enumerate(lines[1:], start=1):
+    #     if not line.strip():
+    #         continue
+    #     neighbors = map(int, line.split())
+    #     for nbr in neighbors:
+    #         # METIS is 1-indexed, so just add (i, nbr)
+    #         G.add_edge(i, nbr)
+
+    # # --- Display information ---
+    # print(f"Graph has {G.number_of_nodes()} nodes and {G.number_of_edges()} edges.")
+    # print("Edges:", sorted(G.edges()))
+
+    # # --- Draw the graph ---
+    # plt.figure(figsize=(6, 5))
+    # pos = nx.spring_layout(G, seed=42)
+    # nx.draw(G, pos, with_labels=True, node_color="skyblue", node_size=600, font_weight="bold")
+    # plt.title("Graph Parsed from METIS Data")
+    # plt.show()
 
 

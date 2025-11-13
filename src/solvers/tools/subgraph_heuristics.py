@@ -6,7 +6,7 @@ def smallest_neighborhood(graph : Graph, c5s):
     smallest = c5s[0]
 
     for neighborhood in c5s[1:]:
-        closed_nh = closed_neighborhood(neighborhood)
+        closed_nh = closed_neighborhood(neighborhood, graph)
         size = len(closed_nh)
         if size < min_size:
             min_size = size
@@ -19,7 +19,7 @@ def largest_neighborhood(graph : Graph, c5s):
     largest = c5s[0]
 
     for neighborhood in c5s[1:]:
-        closed_nh = closed_neighborhood(neighborhood)
+        closed_nh = closed_neighborhood(neighborhood, graph)
         size = len(closed_nh)
         if size > max_size:
             max_size = size
@@ -30,7 +30,7 @@ def largest_neighborhood(graph : Graph, c5s):
 def random_neighborhood(graph: Graph, c5s):
     from random import choice
     c5 = choice(c5s)
-    return closed_neighborhood(c5)
+    return closed_neighborhood(c5, graph)
 
 
 

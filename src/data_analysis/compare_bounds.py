@@ -33,14 +33,14 @@ def evaluate_bounds_on_datasets(
         "dataset_name",
         "num_nodes",
         "num_edges", 
-        "rab_algorithm",
-        "ib_algorithm",
-        "reduce_and_bound",
-        "independence_bound",
+        "calculation algorithm",
+        "reference algorithm",
+        "calculated_bound",
+        "reference_bound",
         "optimal_cover_size",
         "difference",
-        "reduce_and_bound_time",
-        "independence_bound_time"
+        "calculated_bound_time",
+        "reference_bound_time"
     ]
 
     def algorithm_name(fn):

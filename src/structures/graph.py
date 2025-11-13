@@ -178,7 +178,7 @@ class Graph:
                 for u, v in self._graph.edges():
                     f.write(f"{u} {v}\n")
 
-        print(f"Wrote {file_type.upper()} file: {output_path}")
+        # print(f"Wrote {file_type.upper()} file: {output_path}")
 
 
 
