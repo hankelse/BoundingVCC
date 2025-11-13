@@ -1,33 +1,36 @@
 from src.structures.graph import Graph
 
 
-def smallest_neighborhood(graph : Graph, c5_neighborhoods):
-    min_size = len(c5_neighborhoods[0])
-    smallest = c5_neighborhoods[0]
+def smallest_neighborhood(graph : Graph, c5s):
+    min_size = len(closed_neighborhood(c5s[0], graph))
+    smallest = c5s[0]
 
-    for neighborhood in c5_neighborhoods[1:]:
-        size = len(neighborhood)
+    for neighborhood in c5s[1:]:
+        closed_nh = closed_neighborhood(neighborhood)
+        size = len(closed_nh)
         if size < min_size:
             min_size = size
-            smallest = neighborhood
+            smallest = closed_nh
 
     return smallest
 
-def largest_neighborhood(graph: Graph, c5_neighborhoods):
-    max_size = len(c5_neighborhoods[0])
-    largest = c5_neighborhoods[0]
+def largest_neighborhood(graph : Graph, c5s):
+    max_size = len(closed_neighborhood(c5s[0], graph))
+    largest = c5s[0]
 
-    for neighborhood in c5_neighborhoods[1:]:
-        size = len(neighborhood)
+    for neighborhood in c5s[1:]:
+        closed_nh = closed_neighborhood(neighborhood)
+        size = len(closed_nh)
         if size > max_size:
             max_size = size
-            largest = neighborhood
-
+            largest = closed_nh
     return largest
 
-def random_neighborhood(graph: Graph, c5_neighborhoods):
+
+def random_neighborhood(graph: Graph, c5s):
     from random import choice
-    return choice(c5_neighborhoods)
+    c5 = choice(c5s)
+    return closed_neighborhood(c5)
 
 
 

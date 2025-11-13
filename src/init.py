@@ -145,6 +145,7 @@ def main():
     datasets, test_datasets, small_datasets, large_datasets, graph_load_fn_map = get_graphs()
 
     testing_sets = [dataset for dataset in large_datasets if dataset not in too_slow_60] + [small_non_optimally_bounded]
+    testing_sets = [small_non_optimally_bounded]
 
     # evaluate_bounds_on_datasets(datasets        = testing_sets,
     #                             rab_algorithm   = rab_simple1,
@@ -152,11 +153,11 @@ def main():
     #                             timeout         = 60,
     #                             output_path="bounds_results.csv")
     
-    # evaluate_bounds_on_datasets(datasets        = testing_sets,
-    #                             rab_algorithm   = rab_v1,
-    #                             ib_algorithm    = ib_default,
-    #                             timeout         = 60,
-    #                             output_path="bounds_results_v1.csv")
+    evaluate_bounds_on_datasets(datasets        = testing_sets,
+                                rab_algorithm   = rab_v1,
+                                ib_algorithm    = ib_default,
+                                timeout         = 60,
+                                output_path="bounds_results_v1.csv")
     
     # evaluate_bounds_on_datasets(datasets        = testing_sets,
     #                             rab_algorithm   = rab_v2,
