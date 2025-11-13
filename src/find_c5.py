@@ -2,7 +2,7 @@ from src.data_io.load_data import load_lazy
 from src.data_io.process_data import get_graphs
 from src.algorithms.degeneracy import get_degeneracy
 from src.algorithms.slow_degeneracy import get_degeneracy_slow
-from src.graph import Graph
+from src.structures.graph import Graph
 
 
 from pprint import pprint
