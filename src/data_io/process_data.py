@@ -32,7 +32,7 @@ def edges_to_graph(edge_list):
 
 def path_to_graph(folder, filename):
     """Load a graph from a given dataset folder/filename pair."""
-    datasets, _, _, load_fn_map = get_graphs()
+    datasets, _, _, _, load_fn_map = get_graphs()
     key = (folder, filename)
 
     if key not in load_fn_map:

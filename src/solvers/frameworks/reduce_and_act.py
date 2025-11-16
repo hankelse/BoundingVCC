@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from src.algorithms.reductions import removed_masked_nodes
+from src.solvers.tools.reductions import removed_masked_nodes
 
 
 class ReduceAndAct(ABC):

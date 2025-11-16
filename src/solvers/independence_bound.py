@@ -1,6 +1,6 @@
 from src.structures.graph import Graph
 
-from src.algorithms.reductions import apply_reductions_external, removed_masked_nodes
+from src.solvers.tools.reductions import apply_reductions_external, removed_masked_nodes
 from src.solvers.tools.external_solvers import find_indepedent_set_size
 
 def independence_bound(graph: Graph, reductions=apply_reductions_external):

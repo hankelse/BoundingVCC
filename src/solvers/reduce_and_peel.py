@@ -1,5 +1,5 @@
 from src.solvers.frameworks.reduce_and_act import ReduceAndAct
-from src.algorithms.reductions import removed_masked_nodes
+from src.solvers.tools.reductions import removed_masked_nodes
 from src.structures.graph import Graph
 
 
@@ -11,7 +11,7 @@ def reduce_and_peel(graph: Graph, **kwargs):
 
 
 from src.solvers.frameworks.reduce_and_act import ReduceAndAct
-from src.algorithms.reductions import removed_masked_nodes
+from src.solvers.tools.reductions import removed_masked_nodes
 
 
 class ReduceAndPeel(ReduceAndAct):

@@ -7,6 +7,8 @@ from collections import deque
 from pathlib import Path
 from external_solvers.run_redu_reductions import reduvcc_reductions
 
+from src.solvers.tools.external_solvers import read_clique_cover
+
 def apply_reductions_external(graph, temp_path="temp_graph.metis"):
     """
     Applies full ReduVCC reductions by invoking the external solver.
@@ -26,10 +28,10 @@ def apply_reductions_external(graph, temp_path="temp_graph.metis"):
 
     if graph.number_of_nodes() == 0: return [], []
 
-    # 1️⃣ Write the graph to a METIS file
+    # Write the graph to a METIS file
     graph.write(output_path=temp_path, file_type="metis")
 
-    # 2️⃣ Run ReduVCC reductions externally
+    # Run ReduVCC reductions externally
     result = reduvcc_reductions(graph_path=temp_path)
 
     if result["returncode"] != 0:
@@ -37,13 +39,13 @@ def apply_reductions_external(graph, temp_path="temp_graph.metis"):
         print(result["stderr"])
         return None, None
 
-    # 3️⃣ Derive basic statistics
+    # Derive basic statistics
     n_original = result["summary"]["vertices"] if result["summary"] else graph.number_of_nodes()
     n_reduced = result["reduced_graph_nodes"]
     removed_count = n_original - n_reduced if n_reduced is not None else 0
     removed_cliques = result["removed_cliques"]
 
-    # 4️⃣ Construct outputs
+    # Construct outputs
     removed_nodes = [False] * n_original
     if n_reduced is not None:
         # Approximation: mark first (n_original - n_reduced) nodes as removed
@@ -51,7 +53,8 @@ def apply_reductions_external(graph, temp_path="temp_graph.metis"):
         for i in range(removed_count):
             removed_nodes[i] = True
 
-    clique_cover = ["no data"]* removed_cliques
+    # clique_cover = ["no data"]* removed_cliques
+    clique_cover = read_clique_cover("removed_cliques.txt")
 
     # print(f"ReduVCC removed {removed_count} nodes and {removed_cliques} cliques.")
 

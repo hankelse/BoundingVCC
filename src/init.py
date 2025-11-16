@@ -13,7 +13,7 @@ SMALL_DATASETS = [('snap_datasets', 'ca-HepPh.txt'), ('snap_datasets', 'email-Eu
 from functools import partial
 
 # === REDUCTION FUNCTIONS === #
-from src.algorithms.reductions import apply_reductions, apply_reductions_external
+from src.solvers.tools.reductions import apply_reductions, apply_reductions_external
 apply_reductions.__name__           = "apply_reductions"
 apply_reductions_external.__name__  = "apply_reductions_external"
 
@@ -124,24 +124,30 @@ from src.data_analysis.compare_bounds import evaluate_bounds_on_datasets, compar
 def main():
     # Get data
     # too_slow_15 = [('snap_datasets', 'cit-HepTh.txt'), ('snap_datasets', 'cit-HepPh.txt'), ('new_snap_datasets', 'roadNet-CA.txt'), ('new_snap_datasets', 'roadNet-TX.txt'), ('new_snap_datasets', 'web-BerkStan.txt')]
-    too_slow_60 = [('new_snap_datasets', 'web-BerkStan.txt')]
-    small_non_optimally_bounded = ('snap_datasets', 'email-Enron.txt')
-    datasets, test_datasets, small_datasets, large_datasets, graph_load_fn_map = get_graphs()
+    # too_slow_60 = [('new_snap_datasets', 'web-BerkStan.txt')]
+    # small_non_optimally_bounded = ('snap_datasets', 'email-Enron.txt')
+    # datasets, test_datasets, small_datasets, large_datasets, graph_load_fn_map = get_graphs()
 
-    testing_sets = [dataset for dataset in large_datasets if dataset not in too_slow_60] + [small_non_optimally_bounded]
+    # testing_sets = [dataset for dataset in large_datasets if dataset not in too_slow_60] + [small_non_optimally_bounded]
     # testing_sets = [small_non_optimally_bounded]
     
+    from src.data_io.process_data import path_to_graph
+    g = path_to_graph('snap_datasets', 'email-Enron.txt')
+
+    num, cliques = apply_reductions_external(g)
+    # print(cliques)
+
     # evaluate_bounds_on_datasets(datasets        = testing_sets,
     #                             rab_algorithm   = rab_v1,
     #                             ib_algorithm    = ib_default,
     #                             timeout         = 60,
     #                             output_path=f"{rab_v1.__name__}.csv")
     
-    evaluate_bounds_on_datasets(datasets        = testing_sets,
-                                rab_algorithm   = rap_v1,
-                                ib_algorithm    = ib_default,
-                                timeout         = 60,
-                                output_path=f"{rap_v1.__name__}.csv")
+    # evaluate_bounds_on_datasets(datasets        = testing_sets,
+    #                             rab_algorithm   = rap_v1,
+    #                             ib_algorithm    = ib_default,
+    #                             timeout         = 60,
+    #                             output_path=f"{rap_v1.__name__}.csv")
     
 
 

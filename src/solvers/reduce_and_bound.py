@@ -1,7 +1,7 @@
 from src.algorithms.c5_search import degeneracy_c5_search
 from src.structures.graph import Graph
 
-from src.algorithms.reductions import apply_reductions_external, removed_masked_nodes
+from src.solvers.tools.reductions import apply_reductions_external, removed_masked_nodes
 
 from src.solvers.tools.subgraph_heuristics import smallest_neighborhood, largest_neighborhood, closed_neighborhood
 from src.solvers.tools.evaluate_subgraph import trivial_neighborhood_bound
