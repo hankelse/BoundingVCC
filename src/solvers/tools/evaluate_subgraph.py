@@ -1,5 +1,5 @@
 from src.structures.graph import Graph
-from src.solvers.tools.external_solvers import find_clique_cover_size, find_indepedent_set_size
+from src.solvers.tools.external_solvers import find_clique_cover_size, find_indepedent_set_size, find_clique_cover
 
 
 # Lower bounding evaluators
@@ -12,9 +12,23 @@ def independence_neighborhood_bound(graph : Graph, c5_neighborhood):
     c5_neighborhood_graph = get_subgraph(graph, c5_neighborhood)
     return find_indepedent_set_size(c5_neighborhood_graph)
 
-def clique_cover_neighborhood_bound(graph : Graph, c5_neighborhood):
-    c5_neighborhood_graph = get_subgraph(graph, c5_neighborhood)
-    return find_clique_cover_size(c5_neighborhood_graph)
+# def clique_cover_neighborhood_bound(graph : Graph, c5_neighborhood):
+#     c5_neighborhood_graph = get_subgraph(graph, c5_neighborhood)
+#     return find_clique_cover_size(c5_neighborhood_graph)
+
+
+def cover_neighborhood(graph, c5_neighborhood):
+    subgraph = get_subgraph(graph, c5_neighborhood)
+    cover = find_clique_cover(subgraph)
+    # Remap to original labels
+    remapped_cover = []
+    for clique in cover:
+        remapped_clique = []
+        for node in clique:
+            remapped_clique.append(subgraph.new_to_old_labels[node])
+        remapped_cover.append(remapped_clique)
+    return remapped_cover
+
 
 
 

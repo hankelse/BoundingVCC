@@ -1,8 +1,0 @@
-# base_algorithm: reduce_and_bound
-# reductions: apply_reductions_external
-# pattern_finder: degeneracy_c5_search
-# heuristic: smallest_neighborhood
-# neighborhood_evaluator: trivial_neighborhood_bound
-# auxiliary_solver: find_indepedent_set_size
-dataset_category	dataset_name	num_nodes	num_edges	calculation algorithm	reference algorithm	calculated_bound	reference_bound	optimal_cover_size	difference	calculated_bound_time	reference_bound_time
-snap_datasets	email-Enron.txt	36692	183831	reduce_and_bound_v1	ib_default_v1	22253	22253	22256	0	0.213	0.186

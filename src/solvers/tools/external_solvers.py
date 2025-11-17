@@ -32,19 +32,21 @@ def find_clique_cover_size(graph):
 
 
 def find_clique_cover(graph):
-    if graph.number_of_nodes() == 0: return 0
+    if graph.number_of_nodes() == 0: return []
 
     graph.write(output_path="temp.txt", file_type="metis")
 
     result = reduvcc(graph_path="temp.txt")
-    cover = read_clique_cover(path="/redu_cover_cliques.txt")
+    # print(result)
+    cover = read_clique_cover(path="redu_cover_cliques.txt")
+    # print(cover)
 
     return cover
 
 
 
 
-def read_clique_cover(path: str, one_indexed: bool = False):
+def read_clique_cover(path: str, one_indexed: bool = True):
     """
     Reads a clique-cover file where each line contains space-separated vertex IDs.
     Returns a list of cliques, where each clique is a list[int].
@@ -55,6 +57,8 @@ def read_clique_cover(path: str, one_indexed: bool = False):
 
     Returns:
         list[list[int]]: List of cliques, each a list of ints.
+
+    *** ALL LABELS ARE OFFSET BY 1 *** 
     """
     cliques = []
 

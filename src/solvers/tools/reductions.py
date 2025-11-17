@@ -82,9 +82,14 @@ def apply_reductions(graph: Graph, removed_nodes=None):
     return removed_nodes, clique_cover
 
 
-def removed_masked_nodes(graph : Graph, removed_nodes):
+def remove_masked_nodes(graph : Graph, removed_nodes):
+
+    surviving_nodes = [node for node in graph.nodes() if not removed_nodes[node]]
+    self_loops = [(node, node) for node in surviving_nodes]
+
     new_edge_list = []
-    edges = graph.edges()
+    edges = graph.edges() + self_loops
+    print('used bad solution remove masked nodes')
 
     for u, v in edges:
         if removed_nodes[u]: continue

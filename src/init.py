@@ -32,13 +32,15 @@ random_neighborhood.__name__    = "random_neighborhood"
 
 # === SUBGRAPH EVALUATERS === #
 from src.solvers.tools.evaluate_subgraph import (
-    clique_cover_neighborhood_bound,
+    # clique_cover_neighborhood_bound,
     independence_neighborhood_bound,
-    trivial_neighborhood_bound
+    trivial_neighborhood_bound,
+    cover_neighborhood
 )
 # = Cover calculating = #
-clique_cover_neighborhood_bound.__name__    = "clique_cover_neighborhood_bound"
+# clique_cover_neighborhood_bound.__name__    = "clique_cover_neighborhood_bound"
 independence_neighborhood_bound.__name__    = "independence_neighborhood_bound"
+cover_neighborhood.__name__ = "clique_cover_neighborhood"
 
 # = Lower bounding = #
 trivial_neighborhood_bound.__name__         = "trivial_neighborhood_bound"
@@ -101,41 +103,111 @@ from functools import partial
 ib_default = partial(independence_bound, reductions=apply_reductions_external)
 ib_default.__name__ = "ib_default_v1"
 
-# First Reduce and Bound Algorithm
-rab_v1 = setup_algorithm(name="reduce_and_bound_v1",
-                        base_algorithm=reduce_and_bound,
-                        reductions=apply_reductions_external,
-                        pattern_finder=degeneracy_c5_search,
-                        heuristic=smallest_neighborhood,
-                        neighborhood_evaluator=trivial_neighborhood_bound,
-                        auxiliary_solver=find_indepedent_set_size)
+from src.solvers.reduce_and_bound import ReduceAndBound
+from src.solvers.reduce_and_peel import ReduceAndPeel
+from src.solvers.independence_bound import independence_bound
+from src.solvers.tools.external_solvers import find_clique_cover
 
-rap_v1 = setup_algorithm(name = "reduce_and_peel_v1",
-                         base_algorithm=reduce_and_peel,
-                         reductions=apply_reductions_external,
-                         pattern_finder=degeneracy_c5_search,
-                         heuristic=largest_neighborhood,
-                         neighborhood_evaluator=clique_cover_neighborhood_bound,
-                         auxiliary_solver=find_clique_cover_size)
+
+# # First Reduce and Bound Algorithm
+# rab_v1 = setup_algorithm(name="reduce_and_bound_v1",
+#                         base_algorithm=reduce_and_bound,
+#                         reductions=apply_reductions_external,
+#                         pattern_finder=degeneracy_c5_search,
+#                         heuristic=smallest_neighborhood,
+#                         neighborhood_evaluator=trivial_neighborhood_bound,
+#                         auxiliary_solver=find_indepedent_set_size)
+
+# rap_v1 = setup_algorithm(name = "reduce_and_peel_v1",
+#                          base_algorithm=reduce_and_peel,
+#                          reductions=apply_reductions_external,
+#                          pattern_finder=degeneracy_c5_search,
+#                          heuristic=largest_neighborhood,
+#                          neighborhood_evaluator=clique_cover_neighborhood_bound,
+#                          auxiliary_solver=find_clique_cover_size)
+
+
+rab_v1 = ReduceAndBound(
+        reductions=apply_reductions_external,
+        pat_finder=degeneracy_c5_search,
+        pat_choice_heuristic=smallest_neighborhood,
+        pat_neighborhood_evaluator=trivial_neighborhood_bound,
+        auxiliary_solver=independence_bound
+    )
+
+rap_v1 = ReduceAndPeel(
+    reductions=apply_reductions_external,
+    pat_finder=degeneracy_c5_search,
+    pat_choice_heuristic=smallest_neighborhood,
+    pat_neighborhood_evaluator=cover_neighborhood,
+    auxiliary_solver=find_clique_cover
+)
+
+
 
 
 from src.data_analysis.compare_bounds import evaluate_bounds_on_datasets, compare_to_optimal
+from src.solvers.tools.evaluate_cover import validate_cover
 
 def main():
-    # Get data
+    # # Get data
     # too_slow_15 = [('snap_datasets', 'cit-HepTh.txt'), ('snap_datasets', 'cit-HepPh.txt'), ('new_snap_datasets', 'roadNet-CA.txt'), ('new_snap_datasets', 'roadNet-TX.txt'), ('new_snap_datasets', 'web-BerkStan.txt')]
     # too_slow_60 = [('new_snap_datasets', 'web-BerkStan.txt')]
     # small_non_optimally_bounded = ('snap_datasets', 'email-Enron.txt')
     # datasets, test_datasets, small_datasets, large_datasets, graph_load_fn_map = get_graphs()
 
     # testing_sets = [dataset for dataset in large_datasets if dataset not in too_slow_60] + [small_non_optimally_bounded]
-    # testing_sets = [small_non_optimally_bounded]
+    # # testing_sets = [small_non_optimally_bounded]
+    
     
     from src.data_io.process_data import path_to_graph
-    g = path_to_graph('snap_datasets', 'email-Enron.txt')
+    # g = path_to_graph('snap_datasets', 'email-Enron.txt')
+    # g = path_to_graph('test_datasets', 'c5.txt')
+    # print(rab_v1.run(g))
+    # print(rab_v1.get_log())
 
-    num, cliques = apply_reductions_external(g)
+    # C5_LOCATING_SETS = [("test_datasets", "c5.txt"),("test_datasets", "c5_1.txt"), ("test_datasets", "locate_c5_small.txt"), ("test_datasets", "locate_c5_small2.txt"), ("test_datasets", "katate.txt")]
+
+    # for a, b, in C5_LOCATING_SETS:
+    for a, b, in  [('snap_datasets', 'email-Enron.txt')]:
+        rap_v1 = ReduceAndPeel(
+            reductions=apply_reductions_external,
+            pat_finder=degeneracy_c5_search,
+            pat_choice_heuristic=smallest_neighborhood,
+            pat_neighborhood_evaluator=cover_neighborhood,
+            auxiliary_solver=find_clique_cover
+        )
+
+
+        # print(a, b)
+        g = path_to_graph(a, b)
+        cliques = rap_v1.run(g)
+        valid, missing, uncovered = validate_cover(g, cliques)
+        print(valid)
+        print(len(missing), len(uncovered))
+        # if not valid:
+        #     print(a, b)
+        #     print(len(missing), len(uncovered))
+            # print(missing, uncovered)
+
+            # print(cliques)
+
+    # print(len(cliques))
+    # print(rap_v1.get_log())
+
+    # cliques = find_clique_cover(g)
+
+
+    # g = path_to_graph('snap_datasets', 'email-Enron.txt')
+    
+
+    print(rap_v1.get_log())
+
+    # num, cliques = apply_reductions_external(g)
     # print(cliques)
+
+    
+    
 
     # evaluate_bounds_on_datasets(datasets        = testing_sets,
     #                             rab_algorithm   = rab_v1,
@@ -155,6 +227,21 @@ def main():
 
     
 if __name__ == "__main__":
+
+    # def tracefunc(frame, event, arg, indent=[0]):
+    #   if frame.f_code.co_name in ["__iter__", "<genexpr>"]: 
+    #     return
+
+    #   if event == "call":
+    #       indent[0] += 2
+    #       print("-" * indent[0] + "> call function", frame.f_code.co_name)
+    #   elif event == "return":
+    #       print("<" + "-" * indent[0], "exit function", frame.f_code.co_name)
+    #       indent[0] -= 2
+    #   return tracefunc
+
+    # import sys
+    # sys.setprofile(tracefunc)
     main()
     # import networkx as nx
     # import matplotlib.pyplot as plt

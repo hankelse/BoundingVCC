@@ -1,7 +1,7 @@
 from src.algorithms.c5_search import degeneracy_c5_search
 from src.structures.graph import Graph
 
-from src.solvers.tools.reductions import apply_reductions_external, removed_masked_nodes
+from src.solvers.tools.reductions import apply_reductions_external, remove_masked_nodes
 
 from src.solvers.tools.subgraph_heuristics import smallest_neighborhood, largest_neighborhood, closed_neighborhood
 from src.solvers.tools.evaluate_subgraph import trivial_neighborhood_bound
@@ -37,8 +37,9 @@ class ReduceAndBound(ReduceAndAct):
                          pat_choice_heuristic,
                          pat_neighborhood_evaluator,
                          auxiliary_solver)
-        self.pat_neighborhood_evaluator = pat_neighborhood_evaluator
-        self.clique_cover = clique_cover or []
+
+        self.lower_bound = 0
+
 
     # === Subclass-specific behavior ===
 
@@ -53,20 +54,27 @@ class ReduceAndBound(ReduceAndAct):
             removal_mask[node] = True
 
         # Compute the contribution to the bound
-        delta_value = self.neighborhood_bound_func(graph, chosen_neighborhood)
-        print(f"Removing neighborhood of size {len(chosen_neighborhood)}; "
-              f"Δbound = {delta_value}")
+        delta_lower_bound = self.neighborhood_bound_func(graph, chosen_neighborhood)
+        self.log(f"Removing neighborhood of size {len(chosen_neighborhood)}; Δbound = {delta_lower_bound}")
+
+        # Adjust lower bound
+        self.lower_bound += delta_lower_bound
 
         # Remove from graph
-        next_graph = removed_masked_nodes(graph, removal_mask)
-        return next_graph, delta_value
+        next_graph = remove_masked_nodes(graph, removal_mask)
+        return next_graph
 
-    def finalize(self, graph, accumulated_value):
+    def finalize(self, graph):
         """
         Runs the auxiliary solver when no more patterns exist.
         """
         remaining_bound = self.auxiliary_solver(graph)
-        total_bound = accumulated_value + remaining_bound + len(self.clique_cover)
 
-        return total_bound
+        self.lower_bound += remaining_bound
+        self.log(f"Calculated remaining bound: {remaining_bound} (total = {self.lower_bound})")
+
+        self.lower_bound += len(self.get_cover())
+        self.log(f"Factoring in {len(self.get_cover())} (total = {self.lower_bound})")
+
+        return self.lower_bound
     

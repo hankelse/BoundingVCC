@@ -2,8 +2,12 @@ import networkx as nx
 import matplotlib.pyplot as plt
 
 class Graph:
-    def __init__(self, edge_list, name=None):
+    def __init__(self, edge_list, name=None, nodes=None):
         self.name = name
+
+        # # infer nodes from edge list
+        # if nodes is None:
+        #     nodes = sorted(set(u for e in edge_list for u in e))
 
         # Remap edges
         new_edges, mapping = remap_nodes(edge_list)
@@ -165,8 +169,9 @@ class Graph:
 
         if file_type == "metis":
             with open(output_path, "w") as f:
+                # OFFSET by 1
                 f.write(f"{n} {m}\n")
-                offset = 0 if min(nodes_sorted) == 1 else 1
+                offset = 1
                 for node in nodes_sorted:
                     neighbors = sorted(self._graph.neighbors(node))
                     neighbors = [str(v + offset) for v in neighbors]
