@@ -1,8 +1,69 @@
 
 
-from src.graph import Graph
+from src.structures.graph import Graph
 
 from collections import deque
+
+from pathlib import Path
+from external_solvers.run_redu_reductions import reduvcc_reductions
+
+from src.solvers.tools.external_solvers import read_clique_cover
+from src.data_io.load_data import load_metis_graph
+
+
+def apply_reductions_external(graph, temp_path="temp_graph.metis"):
+    """
+    Applies full ReduVCC reductions by invoking the external solver.
+
+    Parameters:
+        graph : Graph
+            A graph object with a .write(output_path, file_type="metis") method.
+        temp_path : str
+            Path to temporary file for writing the METIS graph.
+
+    Returns:
+        removed_nodes : list[bool]
+            A boolean list where removed_nodes[v] == True means
+            v was removed by a reduction (NOT part of the kernel G').
+
+        reduction_cliques : list[list[int]]
+            The cliques that correspond only to removed vertices.
+
+        kernel_cliques : list[list[int]]
+            Singleton cliques for kernel vertices (remaining graph).
+
+        full_clique_cover : list[list[int]]
+            All cliques (reduction + kernel), as written by ReduVCC.
+    """
+
+    # ------------------------------------------------------------
+    # 0. Handle empty graph
+    # ------------------------------------------------------------
+    if graph.number_of_nodes() == 0:
+        return [], []
+
+    temp_path = Path(temp_path)
+
+    graph.write(output_path=str(temp_path), file_type="metis")
+
+    result = reduvcc_reductions(graph_path=str(temp_path))
+    clique_offset = result["cliques_offset"]  # number of kernel vertices
+
+    if result["returncode"] != 0:
+        print("ReduVCC failed:")
+        print(result["stderr"])
+        return None, None
+    
+
+    # reduced_nodes, reduced_edges = read_metis_graph("reduced_graph.metis")
+    reduced = load_metis_graph("reduced_graph.metis")
+
+    
+    clique_file_path = temp_path.with_name("removed_cliques.txt")
+    removed_cliques = read_clique_cover(clique_file_path, zero_index=True)
+
+    return reduced, clique_offset, removed_cliques
+
 
 def apply_reductions(graph: Graph, removed_nodes=None):
     """
@@ -22,19 +83,13 @@ def apply_reductions(graph: Graph, removed_nodes=None):
         new_cliques, removed_nodes = n_degree_isolated_vertex(graph, 2, removed_nodes)
         
     
-    return removed_nodes, clique_cover
+    return removed_nodes, len(clique_cover)
 
 
-def removed_masked_nodes(graph : Graph, removed_nodes):
-    new_edge_list = []
-    edges = graph.edges()
+def remove_masked_nodes(graph : Graph, removal_mask):
 
-    for u, v in edges:
-        if removed_nodes[u]: continue
-        if removed_nodes[v]: continue
-        new_edge_list.append((u, v))
-    
-    return Graph(new_edge_list)
+    to_remove = [node for node in graph.nodes() if removal_mask[node]]
+    return graph.copy_without(to_remove, carry_mapping=False)
 
 
 
@@ -70,8 +125,7 @@ def n_degree_isolated_vertex(graph : Graph, n, removed):
     return cliques, removed
 
 
-                
-            
+    
 
 
 

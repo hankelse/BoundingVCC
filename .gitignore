@@ -3,3 +3,5 @@
 
 external_solvers/ReduVCC
 external_solvers/KaMIS
+reduce_and_actG*.metis
+*.metis

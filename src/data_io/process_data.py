@@ -1,6 +1,6 @@
 from src.data_io.load_data import load_lazy
 import networkx as nx
-from src.graph import Graph
+from src.structures.graph import Graph
 
 def get_graphs():
     '''
@@ -26,19 +26,19 @@ def get_graphs():
     return datasets, test_datasets, small_datasets, large_datasets, graph_load_fn_map
 
 
-def edges_to_graph(edge_list):
-    return Graph(edge_list)
-
-
 def path_to_graph(folder, filename):
     """Load a graph from a given dataset folder/filename pair."""
-    datasets, _, _, load_fn_map = get_graphs()
+    datasets, _, _, _, load_fn_map = get_graphs()
     key = (folder, filename)
 
     if key not in load_fn_map:
         raise ValueError(f"No dataset found for {key}")
     
     return load_fn_map[key]()   # directly returns a Graph
+
+
+from pathlib import Path
+
 
 
 

@@ -1,4 +1,4 @@
-from src.graph import Graph
+from structures.graph import Graph
 
 '''
 Given a graph, return a degeneracy ordering and number

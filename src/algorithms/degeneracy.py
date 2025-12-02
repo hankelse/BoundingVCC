@@ -1,5 +1,5 @@
-from src.graph import Graph
-from src.bucket_queue import BucketQueue
+from src.structures.graph import Graph
+from src.structures.bucket_queue import BucketQueue
 from collections import deque
 
 '''
