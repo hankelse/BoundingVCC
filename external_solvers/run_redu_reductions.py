@@ -29,12 +29,14 @@ def reduvcc_reductions(graph_path, reduvcc_dir="external_solvers/ReduVCC/optimiz
         str(graph_path)
     ]
 
+    # print("before deep")
     result = subprocess.run(
         cmd,
         capture_output=True,
         text=True,
         timeout=timeout
     )
+    # print("after deep")
 
     output = result.stdout.strip()
 
@@ -54,11 +56,9 @@ def reduvcc_reductions(graph_path, reduvcc_dir="external_solvers/ReduVCC/optimiz
             "initial_result": int(summary_match.group(6)),
         }
 
-    # --- Parse "Removed cliques (cover size offset): X" ---
-    removed_match = re.search(
-        r"Removed cliques \(cover size offset\):\s*(\d+)", output
-    )
-    removed_cliques = int(removed_match.group(1)) if removed_match else None
+    # --- Parse "Calculated offset : X" ---
+    removed_match = re.search(r"Calculated offset\s*:\s*(\d+)", output)
+    offset = int(removed_match.group(1)) if removed_match else None
 
     # --- Parse "Wrote reduced graph to reduced_graph.metis with X nodes." ---
     reduced_match = re.search(
@@ -66,13 +66,14 @@ def reduvcc_reductions(graph_path, reduvcc_dir="external_solvers/ReduVCC/optimiz
     )
     reduced_graph_nodes = int(reduced_match.group(1)) if reduced_match else None
 
+
     return {
         "graph": graph_path.name,
         "returncode": result.returncode,
         "stdout": output,
         "stderr": result.stderr.strip(),
         "summary": summary,
-        "removed_cliques": removed_cliques,
+        "cliques_offset": offset,
         "reduced_graph_nodes": reduced_graph_nodes,
     }
 

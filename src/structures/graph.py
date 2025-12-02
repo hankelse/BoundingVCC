@@ -5,12 +5,11 @@ class Graph:
     def __init__(self, edge_list, name=None, nodes=None):
         self.name = name
 
-        # # infer nodes from edge list
-        # if nodes is None:
-        #     nodes = sorted(set(u for e in edge_list for u in e))
+        if nodes == None: nodes = []
+
 
         # Remap edges
-        new_edges, mapping = remap_nodes(edge_list)
+        new_nodes, new_edges, mapping = remap_nodes_and_edges(node_list=nodes, edge_list=edge_list)
         
         # Store mappings
         self.old_to_new_labels = mapping
@@ -23,8 +22,7 @@ class Graph:
         self._graph = nx.Graph()
         self._graph.add_edges_from(new_edges)
 
-        # Explicitly add nodes (If a node is only in a self loop, then it would never be added to the graph)
-        self._graph.add_nodes_from(mapping.values())
+        self._graph.add_nodes_from(new_nodes) # Adds all nodes mentioned in an edge and all in passed in nodes list
 
         # Add manual edge lookup
         self.edge_set = set(self._graph.edges())
@@ -107,10 +105,18 @@ class Graph:
         # return self._graph.has_edge(u, v)
         return (u, v) in self.edge_set or (v, u) in self.edge_set
 
-    def subgraph(self, nodes):
+    def subgraph(self, nodes, carry_remapping=True):
         """Return a new Graph object induced by 'nodes'."""
         sub_edges = self._graph.subgraph(nodes).edges()
-        return Graph([(self.new_to_old_labels[u], self.new_to_old_labels[v]) for u, v in sub_edges])
+        sub_nodes = nodes
+        if carry_remapping:
+            og_sub_edges = [(self.new_to_old_labels[u], self.new_to_old_labels[v]) for u, v in sub_edges]
+            og_nodes = [self.new_to_old_labels[n] for n in nodes]
+            sub_edges = og_sub_edges
+            sub_nodes = og_nodes
+
+        return Graph(edge_list=sub_edges, nodes=sub_nodes, name=str(self.name + "~"))
+    
 
     def number_of_edges(self):
         """Return the number of edges."""
@@ -125,6 +131,43 @@ class Graph:
         degrees = dict(self._graph.degree())
         return max(degrees.values()) if degrees else 0
     
+    # == Removal == 
+
+    def copy_without(self, not_included, carry_mapping=True):
+        if carry_mapping: 
+            #get originally labelled versions
+            og_not_included = [self.new_to_old_labels[n] for n in not_included]
+            og_nodes = [self.new_to_old_labels[n] for n in self.nodes()]
+            og_edges = [(self.new_to_old_labels[u], self.new_to_old_labels[v]) for u, v in self.edges()]
+
+
+            # Copy over nodes
+            og_not_included_set = set(og_not_included)
+            new_nodes = []
+            for n in og_nodes:
+                if not n in og_not_included_set:
+                    new_nodes.append(n)
+            
+            # Copy over edges
+            new_edges = []
+            for u, v in og_edges:
+                if u in og_not_included_set: continue
+                if v in og_not_included_set: continue
+                new_edges.append((u, v))
+        else:
+            new_edges = []
+            new_nodes = []
+            for u, v in self.edges():
+                if u in not_included: continue
+                if v in not_included: continue
+                new_edges.append((u, v))
+            for u in self.nodes():
+                if u in not_included: continue
+                new_nodes.append(u)
+            
+        # Create graph
+        result = Graph(new_edges, name=str(self.name+"*"), nodes=new_nodes)
+        return result
     
     # == Remapping node ids == 
 
@@ -167,9 +210,11 @@ class Graph:
         m = self._graph.number_of_edges()
         nodes_sorted = sorted(self._graph.nodes())
 
+        assert nodes_sorted[0] == 0, "graph was corrupted when writing to metis"
+
         if file_type == "metis":
             with open(output_path, "w") as f:
-                # OFFSET by 1
+                # OFFSET by 1 for metis
                 f.write(f"{n} {m}\n")
                 offset = 1
                 for node in nodes_sorted:
@@ -191,24 +236,32 @@ class Graph:
 
 
 # Function for remapping node labels from an edge list:
-def remap_nodes(edge_list):
+def remap_nodes_and_edges(node_list, edge_list):
     """
-    Remap node labels in an edge list so they go from 0 to num_nodes-1.
+    Remap node labels from an node list so they go from 0 to num_nodes-1.
     
     Returns:
         new_edges : list of (u, v)
         mapping :  old labels -> new labels.
     """
-    # Collect all unique nodes
-    nodes = sorted(set(u for edge in edge_list for u in edge))
+    # Collect all unique nodes, combine with any implied by edges
+    nodes = set()
+    for u, v in edge_list:
+        nodes.add(u)
+        nodes.add(v)
+    for n in node_list:
+        nodes.add(n)
     
     # Build mapping old -> new
     mapping = {old: new for new, old in enumerate(nodes)}
+
+    # Apply mapping to nodes
+    new_nodes = [mapping[n] for n in nodes]
     
     # Apply mapping to edges
     new_edges = [(mapping[u], mapping[v]) for (u, v) in edge_list]
     
-    return new_edges, mapping
+    return new_nodes, new_edges, mapping
 
 
 

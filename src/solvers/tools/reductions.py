@@ -8,6 +8,8 @@ from pathlib import Path
 from external_solvers.run_redu_reductions import reduvcc_reductions
 
 from src.solvers.tools.external_solvers import read_clique_cover
+from src.data_io.load_data import load_metis_graph
+
 
 def apply_reductions_external(graph, temp_path="temp_graph.metis"):
     """
@@ -21,44 +23,46 @@ def apply_reductions_external(graph, temp_path="temp_graph.metis"):
 
     Returns:
         removed_nodes : list[bool]
-            A boolean list marking which nodes were removed (approximation — True if removed).
-        clique_cover : list
-            A list placeholder for removed cliques (currently contains the count only).
+            A boolean list where removed_nodes[v] == True means
+            v was removed by a reduction (NOT part of the kernel G').
+
+        reduction_cliques : list[list[int]]
+            The cliques that correspond only to removed vertices.
+
+        kernel_cliques : list[list[int]]
+            Singleton cliques for kernel vertices (remaining graph).
+
+        full_clique_cover : list[list[int]]
+            All cliques (reduction + kernel), as written by ReduVCC.
     """
 
-    if graph.number_of_nodes() == 0: return [], []
+    # ------------------------------------------------------------
+    # 0. Handle empty graph
+    # ------------------------------------------------------------
+    if graph.number_of_nodes() == 0:
+        return [], []
 
-    # Write the graph to a METIS file
-    graph.write(output_path=temp_path, file_type="metis")
+    temp_path = Path(temp_path)
 
-    # Run ReduVCC reductions externally
-    result = reduvcc_reductions(graph_path=temp_path)
+    graph.write(output_path=str(temp_path), file_type="metis")
+
+    result = reduvcc_reductions(graph_path=str(temp_path))
+    clique_offset = result["cliques_offset"]  # number of kernel vertices
 
     if result["returncode"] != 0:
         print("ReduVCC failed:")
         print(result["stderr"])
         return None, None
+    
 
-    # Derive basic statistics
-    n_original = result["summary"]["vertices"] if result["summary"] else graph.number_of_nodes()
-    n_reduced = result["reduced_graph_nodes"]
-    removed_count = n_original - n_reduced if n_reduced is not None else 0
-    removed_cliques = result["removed_cliques"]
+    # reduced_nodes, reduced_edges = read_metis_graph("reduced_graph.metis")
+    reduced = load_metis_graph("reduced_graph.metis")
 
-    # Construct outputs
-    removed_nodes = [False] * n_original
-    if n_reduced is not None:
-        # Approximation: mark first (n_original - n_reduced) nodes as removed
-        # (You can refine later when ReduVCC outputs explicit mapping)
-        for i in range(removed_count):
-            removed_nodes[i] = True
+    
+    clique_file_path = temp_path.with_name("removed_cliques.txt")
+    removed_cliques = read_clique_cover(clique_file_path, zero_index=True)
 
-    # clique_cover = ["no data"]* removed_cliques
-    clique_cover = read_clique_cover("removed_cliques.txt")
-
-    # print(f"ReduVCC removed {removed_count} nodes and {removed_cliques} cliques.")
-
-    return removed_nodes, clique_cover
+    return reduced, clique_offset, removed_cliques
 
 
 def apply_reductions(graph: Graph, removed_nodes=None):
@@ -79,24 +83,13 @@ def apply_reductions(graph: Graph, removed_nodes=None):
         new_cliques, removed_nodes = n_degree_isolated_vertex(graph, 2, removed_nodes)
         
     
-    return removed_nodes, clique_cover
+    return removed_nodes, len(clique_cover)
 
 
-def remove_masked_nodes(graph : Graph, removed_nodes):
+def remove_masked_nodes(graph : Graph, removal_mask):
 
-    surviving_nodes = [node for node in graph.nodes() if not removed_nodes[node]]
-    self_loops = [(node, node) for node in surviving_nodes]
-
-    new_edge_list = []
-    edges = graph.edges() + self_loops
-    print('used bad solution remove masked nodes')
-
-    for u, v in edges:
-        if removed_nodes[u]: continue
-        if removed_nodes[v]: continue
-        new_edge_list.append((u, v))
-    
-    return Graph(new_edge_list)
+    to_remove = [node for node in graph.nodes() if removal_mask[node]]
+    return graph.copy_without(to_remove, carry_mapping=False)
 
 
 
@@ -132,8 +125,7 @@ def n_degree_isolated_vertex(graph : Graph, n, removed):
     return cliques, removed
 
 
-                
-            
+    
 
 
 

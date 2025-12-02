@@ -150,41 +150,48 @@ from src.data_analysis.compare_bounds import evaluate_bounds_on_datasets, compar
 from src.solvers.tools.evaluate_cover import validate_cover
 
 def main():
-    # # Get data
-    # too_slow_15 = [('snap_datasets', 'cit-HepTh.txt'), ('snap_datasets', 'cit-HepPh.txt'), ('new_snap_datasets', 'roadNet-CA.txt'), ('new_snap_datasets', 'roadNet-TX.txt'), ('new_snap_datasets', 'web-BerkStan.txt')]
-    # too_slow_60 = [('new_snap_datasets', 'web-BerkStan.txt')]
-    # small_non_optimally_bounded = ('snap_datasets', 'email-Enron.txt')
-    # datasets, test_datasets, small_datasets, large_datasets, graph_load_fn_map = get_graphs()
+    # Get data
+    too_slow_15 = [('snap_datasets', 'cit-HepTh.txt'), ('snap_datasets', 'cit-HepPh.txt'), ('new_snap_datasets', 'roadNet-CA.txt'), ('new_snap_datasets', 'roadNet-TX.txt'), ('new_snap_datasets', 'web-BerkStan.txt')]
+    too_slow_60 = [('new_snap_datasets', 'web-BerkStan.txt')]
+    small_non_optimally_bounded = ('snap_datasets', 'email-Enron.txt')
+    datasets, test_datasets, small_datasets, large_datasets, graph_load_fn_map = get_graphs()
 
-    # testing_sets = [dataset for dataset in large_datasets if dataset not in too_slow_60] + [small_non_optimally_bounded]
-    # # testing_sets = [small_non_optimally_bounded]
+    testing_sets = [dataset for dataset in large_datasets if dataset not in too_slow_60] + [small_non_optimally_bounded]
+    # testing_sets = [small_non_optimally_bounded]
     
     
     from src.data_io.process_data import path_to_graph
-    # g = path_to_graph('snap_datasets', 'email-Enron.txt')
-    # g = path_to_graph('test_datasets', 'c5.txt')
-    # print(rab_v1.run(g))
-    # print(rab_v1.get_log())
 
-    # C5_LOCATING_SETS = [("test_datasets", "c5.txt"),("test_datasets", "c5_1.txt"), ("test_datasets", "locate_c5_small.txt"), ("test_datasets", "locate_c5_small2.txt"), ("test_datasets", "katate.txt")]
+    C5_LOCATING_SETS = [("test_datasets", "c5.txt"),("test_datasets", "c5_1.txt"), ("test_datasets", "locate_c5_small.txt"), ("test_datasets", "locate_c5_small2.txt"), ("test_datasets", "katate.txt")]
 
-    # for a, b, in C5_LOCATING_SETS:
-    for a, b, in  [('snap_datasets', 'email-Enron.txt')]:
+    for a, b, in testing_sets: 
+    # for a, b, in  [('snap_datasets', 'email-Enron.txt')]:
+    # for a, b, in  testing_sets[7:]:
         rap_v1 = ReduceAndPeel(
             reductions=apply_reductions_external,
             pat_finder=degeneracy_c5_search,
-            pat_choice_heuristic=smallest_neighborhood,
+            pat_choice_heuristic=largest_neighborhood,
             pat_neighborhood_evaluator=cover_neighborhood,
             auxiliary_solver=find_clique_cover
         )
 
-
-        # print(a, b)
         g = path_to_graph(a, b)
-        cliques = rap_v1.run(g)
+        upper_bound = rap_v1.run(g)
+
+        print(f"found upper bound: {upper_bound}")
+        cliques = rap_v1.build_cover()
+        
+        print(f"Built cover of: {len(cliques)}")
+
+
         valid, missing, uncovered = validate_cover(g, cliques)
-        print(valid)
-        print(len(missing), len(uncovered))
+        if not valid: 
+            print(valid)
+            print(len(missing), len(uncovered))
+            print(f"Cover invalid! \n Implied nonexistant edges:\n\t{missing} \nand didn't cover: \n\t{uncovered}")
+        else:
+            print("Cover validated")
+
         # if not valid:
         #     print(a, b)
         #     print(len(missing), len(uncovered))
@@ -201,7 +208,7 @@ def main():
     # g = path_to_graph('snap_datasets', 'email-Enron.txt')
     
 
-    print(rap_v1.get_log())
+    # print(rap_v1.get_log())
 
     # num, cliques = apply_reductions_external(g)
     # print(cliques)

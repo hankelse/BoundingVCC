@@ -1,0 +1,23 @@
+# Full clique cover of original graph
+# One clique per line, 1-indexed
+
+0 1 2 3 7 
+9 33 
+11 
+12 
+13 
+14 32 
+15 
+5 6 16 
+17 
+18 
+19 
+20 
+21 
+22 
+26 29 
+28 31 
+8 30 
+4 10 
+24 27 
+23 25 
